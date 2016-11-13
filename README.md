@@ -1,7 +1,9 @@
 # planningProject
 15-887 Project
+
+[[https://github.com/donnydcy/planningProject/blob/master/example/planning.png]]
 # Requirments:
-Recommand Anaconda3 for dependencies, <span style="background-color:gray">pyopengl</span> should be installed separately.
+Recommand Anaconda3 for dependencies, pyopengl should be installed separately.
 
 * Python 3.5
 * pyopengl
