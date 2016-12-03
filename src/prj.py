@@ -15,10 +15,7 @@ from PyQt4.QtOpenGL import *
 class MainWindow(QtGui.QWidget):
     def __init__(self):
         super(MainWindow, self).__init__()
-
         self.widget = glWidget(self)
-
-
         mainLayout = QtGui.QHBoxLayout()
         mainLayout.addWidget(self.widget)
 
