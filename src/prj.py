@@ -18,11 +18,9 @@ class MainWindow(QtGui.QWidget):
 
         self.widget = glWidget(self)
 
-        #self.button = QtGui.QPushButton('Test', self)
 
         mainLayout = QtGui.QHBoxLayout()
         mainLayout.addWidget(self.widget)
-        #mainLayout.addWidget(self.button)
 
         self.setLayout(mainLayout)
 
@@ -39,6 +37,10 @@ class glWidget(QGLWidget):
         self.x = 0
         self.y = 0
         self.z = 0
+        
+        self.cameraX = 0
+        self.cameraY = 0
+        self.cameraZ = 50
    
     def paintGL(self):
 
@@ -50,15 +52,23 @@ class glWidget(QGLWidget):
         #glTranslatef(-2.5, 0.5, -6.0)
         glColor3f( 1.0, 1.5, 0.0 );
         glPolygonMode(GL_FRONT, GL_FILL);
-
+        
+        
+            
+        
         glBegin(GL_TRIANGLES)
         glVertex3f(self.x+2,    self.y-1.2, self.z+ 0.0)
         glVertex3f(self.x+2.6,  self.y+0.0, self.z+ 0.0)
         glVertex3f(self.x+2.9,  self.y-1.2, self.z+ 0.0)
         glEnd()
         
+        glPushMatrix()
         self.DrawGround()
-
+        glPopMatrix()
+        
+    
+              
+        
         glFlush()
 
 
@@ -75,8 +85,10 @@ class glWidget(QGLWidget):
         glMatrixMode(GL_PROJECTION)
         glLoadIdentity()                    
         gluPerspective(45.0,1.33,0.1, 100.0) 
-        gluLookAt(0,0, 50,   0, 0, 0,   0, 1, 0); 
-
+        
+     
+                   
+        gluLookAt(0,0 ,self.cameraZ,   0, 0, 0,   0, 1, 0); 
         glMatrixMode(GL_MODELVIEW)
 
 
@@ -95,9 +107,17 @@ class glWidget(QGLWidget):
         self.lastPos = QtCore.QPoint(event.pos())
         self.x +=1
         self.y +=1
+        self.cameraZ +=1
         self.updateGL()
         
         print(self.x,self.y)
+        
+    def wheelEvent(self,event):
+        d = event.delta()
+        self.cameraZ += (d and d // abs(d))
+        self.update()
+
+              
         
     def moveObject(self,event):
         pass
