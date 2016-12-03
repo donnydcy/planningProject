@@ -14,6 +14,7 @@ Recommand Anaconda3 for dependencies, pyopengl should be installed separately.
 Using 
 ```bash
 conda install pyopengl
+conda install PyQt4
 ```
 
 # Repository:
