@@ -62,7 +62,7 @@ class glWidget(QGLWidget):
         glPushMatrix()
         glTranslatef(0,10,self.cameraZ-50)
         
-        glRotatef(10+self.cameraZ-50,0,0,1)
+        glRotatef(15+self.cameraZ-50,0,0,1)
         glColor3f( 1.0, 1.5, 0.0 );
         glPolygonMode(GL_FRONT, GL_FILL);
         
