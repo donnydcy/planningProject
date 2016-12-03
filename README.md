@@ -11,6 +11,11 @@ Recommand Anaconda3 for dependencies, pyopengl should be installed separately.
 * pyopengl
 * PyQt4
 
+Using 
+```bash
+conda install pyopengl
+```
+
 # Repository:
 * src/prj.py:
 	visulization and run main functions
