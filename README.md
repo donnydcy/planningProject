@@ -33,5 +33,6 @@ mapdata = np.loadtxt('../data/map_random_algo.txt')
 ```
 * Map Files for algortihms:
 
-.* map_one_algo.txt
-.* map_random_algo.txt
+: * map_one_algo.txt
+
+: * map_random_algo.txt
