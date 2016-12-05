@@ -83,6 +83,8 @@ class glWidget(QGLWidget):
         glRotatef(15+self.cameraZ-50,0,0,1)
         glColor3f( 1.0, 1.5, 0.0 );
         glPolygonMode(GL_FRONT, GL_FILL);
+
+
         
         glBegin(GL_TRIANGLES)
         glVertex3f(self.x+2,    self.y-1.2, self.z+ 0.0)
@@ -90,8 +92,9 @@ class glWidget(QGLWidget):
         glVertex3f(self.x+2.9,  self.y-1.2, self.z+ 0.0)
         glEnd()
         
-        self.DrawGround()
         self.DrawObstacles()
+        self.DrawGround()
+        
         glPopMatrix()
               
         
@@ -129,13 +132,21 @@ class glWidget(QGLWidget):
             glVertex3f(area, i, 0); glVertex3f(-area, i, 0);        
         
         glEnd();
-        # glColor4f(0.3,0.3,0.3,0.5)
-        # glBegin(GL_QUADS)
-        # glVertex3f(-area,-area,0)
-        # glVertex3f(area,-area,0)
-        # glVertex3f(area,area,0)
-        # glVertex3f(-area,area,0)
-        # glEnd()
+        glColor4f(0.3,0.3,0.3,0.2)
+        glBegin(GL_QUADS)
+        glVertex3f(-area,-area,0)
+        glVertex3f(area,-area,0)
+        glVertex3f(area,area,0)
+        glVertex3f(-area,area,0)
+        glEnd()
+
+        glColor4f(0.8,0.8,1,0.2)
+        glBegin(GL_QUADS)
+        glVertex3f(-area,-area,5)
+        glVertex3f(area,-area,5)
+        glVertex3f(area,area,5)
+        glVertex3f(-area,area,5)
+        glEnd()
 
 
     def DrawObstacles(self):
