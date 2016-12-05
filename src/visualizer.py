@@ -9,6 +9,7 @@ Planning Course Project
 
 from OpenGL.GL import *
 from OpenGL.GLU import *
+from OpenGL.GLUT import *
 from PyQt4 import QtGui,QtCore
 from PyQt4.QtOpenGL import *
 from PIL.Image import open
@@ -62,6 +63,11 @@ class glWidget(QGLWidget):
         self.cameraY = 0
         self.cameraZ = 50
 
+        self.rotX = 0
+        self.rotY = 0
+        self.rotZ = 0
+
+        self.path = [[self.x,self.y,self.z]]
         width,height,data = self.loadMap(GROUND_MAP)
         self.groundMap = Map(width,height,data)
 
@@ -70,6 +76,8 @@ class glWidget(QGLWidget):
 
         assert self.groundMap.width == self.aerialMap.width
         assert self.groundMap.height == self.aerialMap.height
+
+        self.setFocusPolicy(QtCore.Qt.StrongFocus)
    
     def paintGL(self):
 
@@ -78,20 +86,29 @@ class glWidget(QGLWidget):
         glLoadIdentity()
         
         glPushMatrix()
-        glTranslatef(0,10,self.cameraZ-50)
+
+        glTranslatef(self.cameraX,self.cameraY,self.cameraZ-50)
+        # glTranslatef(0,10,self.cameraZ-50)
         
-        glRotatef(15+self.cameraZ-50,0,0,1)
-        glColor3f( 1.0, 1.5, 0.0 );
+        glRotatef(self.rotX,1,0,0);
+        glRotatef(self.rotY,0,1,0);
+        glRotatef(self.rotZ,0,0,1);
+        # glRotatef(15+self.cameraZ-50,0,0,1)
+        glColor3f( 1.0, 1.0, 0.0 );
         glPolygonMode(GL_FRONT, GL_FILL);
 
 
         
-        glBegin(GL_TRIANGLES)
-        glVertex3f(self.x+2,    self.y-1.2, self.z+ 0.0)
-        glVertex3f(self.x+2.6,  self.y+0.0, self.z+ 0.0)
-        glVertex3f(self.x+2.9,  self.y-1.2, self.z+ 0.0)
+        glBegin(GL_QUADS)
+        glVertex3f(self.x-0.5, self.y-0.5, self.z)
+        glVertex3f(self.x+0.5, self.y-0.5, self.z)
+        glVertex3f(self.x+0.5, self.y+0.5, self.z)
+        glVertex3f(self.x-0.5, self.y+0.5, self.z)
+        # glVertex3f(self.x-2.6,  self.y+0.0, self.z)
+        # glVertex3f(self.x-2.9,  self.y-1.2, self.z)
         glEnd()
         
+        self.DrawFootprint()
         self.DrawObstacles()
         self.DrawGround()
         
@@ -155,6 +172,9 @@ class glWidget(QGLWidget):
         # show obstacles in aerial map in blue
         [self.DrawPatch(i,j,5.0,[0.5,0.5,1]) for i in range(self.aerialMap.width) for j in range(self.aerialMap.height) if self.aerialMap.data[i][j]]
 
+    def DrawFootprint(self):
+        [self.DrawPatch(loc[0],loc[1],loc[2],[0,1,0]) for loc in self.path]
+
     # draw individual patches, used by drawObstacles
     def DrawPatch(self,x,y,z,color):
         glPolygonMode(GL_FRONT, GL_FILL)
@@ -170,8 +190,9 @@ class glWidget(QGLWidget):
     def mousePressEvent(self, event):
         
         self.lastPos = QtCore.QPoint(event.pos())
-        #self.x +=1
-        #self.y +=1
+        self.x +=1
+        self.y +=1
+        self.path.append([self.x,self.y,self.z])
         self.updateGL()
         
 
@@ -182,6 +203,30 @@ class glWidget(QGLWidget):
         d = event.delta()
         self.cameraZ += (d and d // abs(d))
         self.updateGL()
+
+    def keyPressEvent(self, event):
+        if event.key() == QtCore.Qt.Key_Escape:
+            self.close()
+        else:
+            if event.key() == QtCore.Qt.Key_Up:
+                self.cameraY -= 2
+            if event.key() == QtCore.Qt.Key_Down:
+                self.cameraY += 2
+            if event.key() == QtCore.Qt.Key_Left:
+                self.cameraX += 2
+            if event.key() == QtCore.Qt.Key_Right:
+                self.cameraX -= 2
+
+            if event.key() == QtCore.Qt.Key_W:
+                self.rotX -= 2
+            if event.key() == QtCore.Qt.Key_S:
+                self.rotX += 2
+            if event.key() == QtCore.Qt.Key_A:
+                self.rotZ += 2
+            if event.key() == QtCore.Qt.Key_D:
+                self.rotZ -= 2
+
+            self.updateGL()
               
         
     def moveObject(self,event):
