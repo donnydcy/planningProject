@@ -12,6 +12,16 @@ from OpenGL.GLU import *
 from PyQt4 import QtGui,QtCore
 from PyQt4.QtOpenGL import *
 
+
+class Leaf3DPose():
+    def __init__(self,X=0,Y=0,Z=0,RotX =0, RotY = 0, RotZ =0):
+        self.x = X
+        self.y = Y
+        self.z = Z
+        self.rotX = RotX
+        self.rotY = RotY
+        self.rotZ = RotZ
+
 class MainWindow(QtGui.QWidget):
     def __init__(self):
         super(MainWindow, self).__init__()
@@ -41,20 +51,20 @@ class glWidget(QGLWidget):
         self.cameraX = 0
         self.cameraY = 0
         self.cameraZ = 50
+        
    
     def paintGL(self):
 
 
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)
         glLoadIdentity()
-
-
-        #glTranslatef(-2.5, 0.5, -6.0)
+        
+        glPushMatrix()
+        glTranslatef(0,10,self.cameraZ-50)
+        
+        glRotatef(15+self.cameraZ-50,0,0,1)
         glColor3f( 1.0, 1.5, 0.0 );
         glPolygonMode(GL_FRONT, GL_FILL);
-        
-        
-            
         
         glBegin(GL_TRIANGLES)
         glVertex3f(self.x+2,    self.y-1.2, self.z+ 0.0)
@@ -62,11 +72,8 @@ class glWidget(QGLWidget):
         glVertex3f(self.x+2.9,  self.y-1.2, self.z+ 0.0)
         glEnd()
         
-        glPushMatrix()
         self.DrawGround()
         glPopMatrix()
-        
-    
               
         
         glFlush()
@@ -84,12 +91,13 @@ class glWidget(QGLWidget):
 
         glMatrixMode(GL_PROJECTION)
         glLoadIdentity()                    
-        gluPerspective(45.0,1.33,0.1, 100.0) 
+        gluPerspective(45.0,1.33,0.1, 200.0) 
         
      
                    
         gluLookAt(0,0 ,self.cameraZ,   0, 0, 0,   0, 1, 0); 
         glMatrixMode(GL_MODELVIEW)
+
 
 
     def DrawGround(self):
@@ -105,17 +113,19 @@ class glWidget(QGLWidget):
     def mousePressEvent(self, event):
         
         self.lastPos = QtCore.QPoint(event.pos())
-        self.x +=1
-        self.y +=1
-        self.cameraZ +=1
+        #self.x +=1
+        #self.y +=1
         self.updateGL()
         
+
+
         print(self.x,self.y)
         
     def wheelEvent(self,event):
         d = event.delta()
         self.cameraZ += (d and d // abs(d))
-        self.update()
+        self.updateGL()
+
 
               
         
