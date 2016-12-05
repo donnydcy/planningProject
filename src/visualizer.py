@@ -16,8 +16,8 @@ from PIL.Image import open
 import numpy as np
 
 # path to map files
-GROUND_MAP = '../data/map.txt'
-AERIAL_MAP = '../data/map.txt'
+GROUND_MAP = '../data/map_1_obstacle_ground.txt'
+AERIAL_MAP = '../data/map_1_obstacle_aerial.txt'
 
 
 class Leaf3DPose():
@@ -58,14 +58,6 @@ class glWidget(QGLWidget):
         self.x = 0
         self.y = 0
         self.z = 0
-        
-        self.cameraX = 0
-        self.cameraY = 0
-        self.cameraZ = 50
-
-        self.rotX = 0
-        self.rotY = 0
-        self.rotZ = 0
 
         self.path = [[self.x,self.y,self.z]]
         width,height,data = self.loadMap(GROUND_MAP)
@@ -73,6 +65,14 @@ class glWidget(QGLWidget):
 
         width,height,data = self.loadMap(AERIAL_MAP)
         self.aerialMap = Map(width,height,data)
+
+        self.cameraX = -width/2
+        self.cameraY = -height/2
+        self.cameraZ = 50
+
+        self.rotX = 0
+        self.rotY = 0
+        self.rotZ = 0
 
         assert self.groundMap.width == self.aerialMap.width
         assert self.groundMap.height == self.aerialMap.height
@@ -87,7 +87,7 @@ class glWidget(QGLWidget):
         
         glPushMatrix()
 
-        glTranslatef(self.cameraX,self.cameraY,self.cameraZ-50)
+        glTranslatef(self.cameraX,self.cameraY,self.cameraZ-200)
         # glTranslatef(0,10,self.cameraZ-50)
         
         glRotatef(self.rotX,1,0,0);
@@ -131,7 +131,7 @@ class glWidget(QGLWidget):
         glBlendFunc (GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
         glMatrixMode(GL_PROJECTION)
         glLoadIdentity()                    
-        gluPerspective(45.0,1.33,0.1, 200.0) 
+        gluPerspective(45.0,1.33,0.1, 800.0) 
         
      
                    
@@ -144,25 +144,26 @@ class glWidget(QGLWidget):
         glColor3f (0.3, 0.3, 0.3);
         glBegin(GL_LINES);
         area = 50        
-        for i in range(-area,area):
-            glVertex3f(i, area, 0); glVertex3f(i, -area, 0);
-            glVertex3f(area, i, 0); glVertex3f(-area, i, 0);        
+        for i in range(self.groundMap.width):
+            glVertex3f(i, 0, 0); glVertex3f(i, self.groundMap.height, 0);
+        for i in range(self.groundMap.height):
+            glVertex3f(0, i, 0); glVertex3f(self.groundMap.width, i, 0);        
         
         glEnd();
         glColor4f(0.3,0.3,0.3,0.2)
         glBegin(GL_QUADS)
-        glVertex3f(-area,-area,0)
-        glVertex3f(area,-area,0)
-        glVertex3f(area,area,0)
-        glVertex3f(-area,area,0)
+        glVertex3f(0,0,0)
+        glVertex3f(self.groundMap.width,0,0)
+        glVertex3f(self.groundMap.width,self.groundMap.height,0)
+        glVertex3f(0,self.groundMap.height,0)
         glEnd()
 
         glColor4f(0.8,0.8,1,0.2)
         glBegin(GL_QUADS)
-        glVertex3f(-area,-area,5)
-        glVertex3f(area,-area,5)
-        glVertex3f(area,area,5)
-        glVertex3f(-area,area,5)
+        glVertex3f(0,0,5)
+        glVertex3f(self.groundMap.width,0,5)
+        glVertex3f(self.groundMap.width,self.groundMap.height,5)
+        glVertex3f(0,self.groundMap.height,5)
         glEnd()
 
 
@@ -225,6 +226,11 @@ class glWidget(QGLWidget):
                 self.rotZ += 2
             if event.key() == QtCore.Qt.Key_D:
                 self.rotZ -= 2
+
+            if event.key() == QtCore.Qt.Key_Space:
+                self.cameraZ += 2
+            if event.key() == QtCore.Qt.Key_Return:
+                self.cameraZ -= 2
 
             self.updateGL()
               
