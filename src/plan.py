@@ -13,6 +13,7 @@ import itertools
 import math
 
 class myPlan():
+
     def __init__(self, worldMap=[], costMap=[], poseX=0, poseY=0, dim = 100):
         self.worldMap = worldMap
         self.costMap = costMap
@@ -20,17 +21,23 @@ class myPlan():
         self.UGVY = poseY
         self.UAVX = poseX
         self.UAVY = poseY
-        self.distMap = np.zeros([dim,dim])
+        self.distMap4UGV = np.zeros([dim,dim])
+        self.distMap4UAV = np.zeros([dim,dim])
         self.dim = dim
         self.PQ = priorityQ()
-            
+        self.AstarPQUGV = priorityQ()
+        self.AstarPQUAV = priorityQ()
+        
+        self.AstarWeight = 1.05
         self.generateDistMap()
         
-    def generateDistMap(self):
+        self.penalty = 0.8
+        
+    def generateDistMap(self, isUAV = False):
         # run Dijkstra
         A_closelist = {}
         parent= {}
-        self.PQ.add_task(self.pix2ind([self.UGVY, self.UGVX]),0,0);
+        self.PQ.add_task(self.pix2ind([self.UGVY, self.UGVX]),0,0)
         while(len(self.PQ.pq)>0):
             priority,g, key = self.PQ.pop_task()
             
@@ -40,28 +47,82 @@ class myPlan():
             pos  = self.ind2pix(key)
             y = pos[0]
             x = pos[1]
-            self.distMap[y,x] = g            
+            if isUAV:
+                self.distMap4UAV[y,x] = g
+            else:
+                self.distMap4UGV[y,x] = g
             
             # move left:    
-            self.move(parent, A_closelist, x-1, y, key, g)
-            
+            self.move(parent, A_closelist, x-1, y, key, g, isUAV_flag = isUAV)
             # move up-left:    
-            self.move(parent, A_closelist, x-1, y-1, key, g)
+            self.move(parent, A_closelist, x-1, y-1, key, g, isUAV_flag = isUAV)
             # move up:    
-            self.move(parent, A_closelist, x, y-1, key, g)
+            self.move(parent, A_closelist, x, y-1, key, g, isUAV_flag = isUAV)
             # move up-right:    
-            self.move(parent, A_closelist, x+1, y-1, key, g)
+            self.move(parent, A_closelist, x+1, y-1, key, g, isUAV_flag = isUAV)
             # move right:
-            self.move(parent, A_closelist, x+1, y, key, g)
+            self.move(parent, A_closelist, x+1, y, key, g, isUAV_flag = isUAV)
             # move down-right:
-            self.move(parent, A_closelist, x+1, y+1, key, g)
+            self.move(parent, A_closelist, x+1, y+1, key, g, isUAV_flag = isUAV)
             # move down:
-            self.move(parent, A_closelist, x, y+1, key, g)
+            self.move(parent, A_closelist, x, y+1, key, g, isUAV_flag = isUAV)
             # move down -left
-            self.move(parent, A_closelist, x-1, y+1, key, g)
+            self.move(parent, A_closelist, x-1, y+1, key, g, isUAV_flag = isUAV)
                     
                 
-            pass
+        pass
+        
+      
+    def runAstar(self, startX, startY, goalX, goalY, isUAV = False):
+          
+        A_closelist = {}
+        parent= {}
+        self.PQ.add_task(self.pix2ind([startY, startX]),0,0)
+        while(len(self.PQ.pq)>0):
+            priority,g, key = self.PQ.pop_task()
+   
+            A_closelist[key] = g 
+
+            # if find goal, break the loop
+            if key == self.pix2ind([goalY, goalX]):
+                  break
+
+            pos  = self.ind2pix(key)
+            y = pos[0]
+            x = pos[1]
+
+            # move left:    
+            self.move(parent, A_closelist, x-1, y, key, g, A_flag = True, isUAV_flag = isUAV)
+            # move up-left:    
+            self.move(parent, A_closelist, x-1, y-1, key, g, A_flag = True, isUAV_flag = isUAV)
+            # move up:    
+            self.move(parent, A_closelist, x, y-1, key, g, A_flag = True, isUAV_flag = isUAV)
+            # move up-right:    
+            self.move(parent, A_closelist, x+1, y-1, key, g, A_flag = True, isUAV_flag = isUAV)
+            # move right:
+            self.move(parent, A_closelist, x+1, y, key, g, A_flag = True, isUAV_flag = isUAV)
+            # move down-right:
+            self.move(parent, A_closelist, x+1, y+1, key, g, A_flag = True, isUAV_flag = isUAV)
+            # move down:
+            self.move(parent, A_closelist, x, y+1, key, g, A_flag = True, isUAV_flag = isUAV)
+            # move down -left
+            self.move(parent, A_closelist, x-1, y+1, key, g, A_flag = True, isUAV_flag = isUAV)
+            
+
+        # get path from Astar result
+        node = self.pix2ind([goalY, goalX])
+        path = []        
+        path.append([goalY,goalX])
+        while node in parent:
+            new_node = parent[node]
+            path.append(self.ind2pix(new_node))
+            node = new_node
+
+        path.reverse()
+        print(np.array(path))
+
+
+        
         
     def pix2ind(self,pix = [0,0]):
         return pix[0]*self.dim + pix[1]
@@ -76,13 +137,53 @@ class myPlan():
             False
                 
     # move a cell and insert to pq, a building block to Dijkstra
-    def move(self, parents, closeList,X,Y, preTask, pre_g):
+    def move(self, parents, closeList,X,Y, preTask, pre_g, A_flag = False, isUAV_flag = False):
         new_pose = self.checkBoarder([Y,X])
+        cost = 1
         if new_pose :
+            if not A_flag:
+                heristic = 0
+            else:
+                # if use A*, herisitic gerenated from distMap
+                if isUAV_flag:                    
+                    heristic = self.distMap4UAV[Y,X] * self.AstarWeight
+                    cost = 1
+                else:
+                    heristic = self.distMap4UGV[Y,X] * self.AstarWeight                    
+                    cost = self.costMap[Y,X]
+                    
             new_pose_ind = self.pix2ind(new_pose)
             if new_pose_ind not in closeList:
-                if self.PQ.add_task(new_pose_ind, pre_g, self.costMap[Y,X]):
+                if self.PQ.add_task(new_pose_ind, pre_g, cost, h = heristic):
                     parents[new_pose_ind] = preTask
+        
+        
+    def generateUGVScoreMap(self, IG_map = [], m_block = 0.,Dmax = 0, deploy_ = False ):
+        #TODO use euclidean? or other matric?
+    
+        IG_map = np.array(IG_map)
+        score = np.divide(IG_map, self.distMap4UGV) 
+        if deploy_ :
+            m_block = 1/m_block
+        
+        score *= m_block
+        
+        
+        if not deploy_:
+            for i in range(dim):
+                for j in range(dim):
+                    if self.distMap4UGV[j,i] <= Dmax:
+                        score[j,i] *= 1
+                    else:
+                        score[j,i] *= Dmax/self.distMap4UGV[j,i] * self.penalty
+        
+        
+        
+        
+        
+        
+        
+        
         
         
         
@@ -126,4 +227,7 @@ class priorityQ:# This class is modified from Python.org
                 return priority, g, task
                 raise KeyError('pop from an empty priority queue')
 
-a =    myPlan(worldMap=np.zeros([100,100]), costMap=np.ones([100,100]), poseX=0, poseY=0, dim = 100)
+
+cost = np.ones([100,100])
+a = myPlan(worldMap=np.zeros([100,100]), costMap=cost, poseX=0, poseY=0, dim = 100)
+a.runAstar(0,0,20,20)
