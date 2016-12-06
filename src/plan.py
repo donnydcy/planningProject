@@ -322,6 +322,7 @@ class myPlan():
     def execute(self):
         
         step = 0
+        
         while step < self.globalTimeThreshold:
             
             self.generateDistMap(self.UGVX, self.UGVY, isUAV = False)
