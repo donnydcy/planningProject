@@ -18,8 +18,10 @@ from time import sleep
 from plan import *
 
 # path to map files
-GROUND_MAP = '../data/map_one.txt'
-AERIAL_MAP = '../data/map_one.txt'
+GROUND_MAP = '../data/map_manhattan.txt'
+AERIAL_MAP = '../data/map_manhattan.txt'
+
+COLORS = [[255,255,0],[255,195,0],[255,87,51],[199,0,57],[144,12,63],[88,24,69]]
 
 
 class Leaf3DPose():
@@ -98,6 +100,7 @@ class glWidget(QGLWidget):
 #        self.uavPath = [[node[1],node[0]] for node in ugvPath]
 #        self.updateGL()
 #        self.moveObject()
+
         self.timer = QtCore.QTimer()
         self.timer.timeout.connect(self.moveObject)
         interval = 1000.0 / 50.0
@@ -178,13 +181,13 @@ class glWidget(QGLWidget):
     def DrawGround(self):
         glColor3f (0.3, 0.3, 0.3);
         glBegin(GL_LINES);
-        area = 50        
         for i in range(0,self.groundMap.width,2):
             glVertex3f(i, 0, 0); glVertex3f(i, self.groundMap.height, 0);
         for i in range(0,self.groundMap.height,2):
             glVertex3f(0, i, 0); glVertex3f(self.groundMap.width, i, 0);        
         
         glEnd();
+
         glColor4f(0.3,0.3,0.3,0.2)
         glBegin(GL_QUADS)
         glVertex3f(0,0,0)
@@ -200,6 +203,8 @@ class glWidget(QGLWidget):
         glVertex3f(self.groundMap.width,self.groundMap.height,20)
         glVertex3f(0,self.groundMap.height,20)
         glEnd()
+
+        # [self.DrawPatch(i,j,0.0,np.array(COLORS[int(round(self.a.IG_Map[j][i]/18*5))])/255.0) for i in range(self.groundMap.width) for j in range(self.groundMap.height)]
 
 
     def DrawObstacles(self):
@@ -282,9 +287,11 @@ class glWidget(QGLWidget):
         self.ugvY = self.a.UGVY
         self.uavX = self.a.UAVX
         self.uavY = self.a.UAVY
-        self.ugvPath.append([self.ugvX,self.ugvY,self.ugvZ])
+        self.ugvPath = [[node[1],node[0]] for node in self.a.UGVPath]
+        self.uavPath = [[node[1],node[0]] for node in self.a.UAVPath]
+        # self.ugvPath.append([self.ugvX,self.ugvY,self.ugvZ])
         
-        self.uavPath.append([self.uavX,self.uavY,self.uavZ])
+        # self.uavPath.append([self.uavX,self.uavY,self.uavZ])
         self.updateGL()
 
         
