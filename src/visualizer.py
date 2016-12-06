@@ -91,10 +91,14 @@ class glWidget(QGLWidget):
         
         cost = np.zeros([100,100])
         self.a = myPlan(np.array(self.groundMap.data).transpose(), np.array(self.groundMap.data).transpose()*499+1)
+        #self.a.generateDistMap(20,2)
+        #print(self.a.runAstar(0,0,20,2))
+        #self.moveObject()
         self.timer = QtCore.QTimer()
         self.timer.timeout.connect(self.moveObject)
         interval = 1000.0 / 50.0
         self.timer.start( interval )
+        print('initialization done')
   
     def paintGL(self):
 
@@ -265,8 +269,8 @@ class glWidget(QGLWidget):
               
         
     def moveObject(self):
-        j = 0
         self.a.execute()
+        print('execute done')
         self.ugvX = self.a.UGVX
         self.ugvY = self.a.UGVY
         self.uavX = self.a.UAVX

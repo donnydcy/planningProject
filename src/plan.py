@@ -69,9 +69,9 @@ class myPlan():
             y = pos[0]
             x = pos[1]
             if isUAV:
-                self.distMap4UAV[y,x] = g
+                self.distMap4UAV[y,x] = g-1
             else:
-                self.distMap4UGV[y,x] = g
+                self.distMap4UGV[y,x] = g-self.costMap[y,x]
             
             # move left:    
             self.move(parent, A_closelist, x-1, y, key, g, isUAV_flag = isUAV)
@@ -90,7 +90,8 @@ class myPlan():
             # move down -left
             self.move(parent, A_closelist, x-1, y+1, key, g, isUAV_flag = isUAV)
                     
-                
+    
+        
         pass
         
       
@@ -145,7 +146,7 @@ class myPlan():
             path.append(self.ind2pix(new_node))
             node = new_node
 
-        path.reverse()
+        #path.reverse()
         # print(np.array(path))
 
         return np.array(path)
@@ -195,7 +196,7 @@ class myPlan():
     
         # IG_map = np.array(IG_map)
         # score = np.divide(IG_map, self.distMap4UGV) 
-        score = np.divide(self.IG_Map, self.distMap4UGV+1)
+        score = np.divide(self.IG_Map, self.distMap4UGV+2)
         score = score*(1-self.occupMap)
         score[self.UGVY, self.UGVX] = 0
         # if deploy_ :
@@ -340,6 +341,7 @@ class myPlan():
         #while step < self.globalTimeThreshold:
             
         self.generateDistMap(self.UGVX, self.UGVY, isUAV = False)
+        
         if self.deploy_:
             self.generateDistMap(self.UAVX, self.UAVY, isUAV = True)
     
@@ -347,13 +349,13 @@ class myPlan():
         
         scoreMapUGV = self.generateUGVScoreMap(self.batteryLife * 0.9 )
         UGVFrontier = np.unravel_index(scoreMapUGV.argmax(), scoreMapUGV.shape)
-        UGVPath = self.runAstar(self.UGVX,self.UGVY, UGVFrontier[1], UGVFrontier[0], isUAV = False)
+        UGVPath = self.runAstar(UGVFrontier[1], UGVFrontier[0], self.UGVX,self.UGVY, isUAV = False)
         
         if self.deploy_:
             scoreMapUAV = self.generateUAVScoreMap(self.batteryLife * 0.9 )
             UAVFrontier = np.unravel_index(scoreMapUAV.argmax(), scoreMapUAV.shape)
-            if sp.spatial.distance.chebyshev(np.array(UAVFrontier), np.array(UGVFrontier)) < self.batteryLife * 0.9:
-                UAVPath =  self.runAstar(self.UAVX,self.UAVY, UAVFrontier[1], UAVFrontier[0], isUAV = True)
+            if sp.spatial.distance.chebyshev(np.array(UAVFrontier), np.array(UGVFrontier)) < self.batteryLife * 0.5:
+                UAVPath =  self.runAstar(UAVFrontier[1],UAVFrontier[0], self.UAVX, self.UAVY, isUAV = True)
             else:
                 print(self.UGVX,self.UGVY, UGVFrontier)
                 UGVPath, UAVPath = self.UAVGoBackPlan(UGVPath, np.array([self.UAVY, self.UAVX]), self.batteryLife)
