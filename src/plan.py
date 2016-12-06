@@ -8,6 +8,7 @@ Planning class
 """
 
 import numpy as np
+from scipy import signal
 from heapq import heappush, heappop
 import itertools
 import math
@@ -17,6 +18,7 @@ class myPlan():
     def __init__(self, worldMap=[], costMap=[], poseX=0, poseY=0, dim = 100):
         self.worldMap = worldMap
         self.costMap = costMap
+        self.visitMap = np.zeros([dim,dim])
         self.UGVX = poseX
         self.UGVY = poseY
         self.UAVX = poseX
@@ -32,6 +34,11 @@ class myPlan():
         self.generateDistMap()
         
         self.penalty = 0.8
+        self.deploy_ = 0
+        self.m_block = 2
+
+        self.UGVPath = np.array([])
+        self.UAVPath = np.array([])
         
     def generateDistMap(self, isUAV = False):
         # run Dijkstra
@@ -119,8 +126,9 @@ class myPlan():
             node = new_node
 
         path.reverse()
-        print(np.array(path))
+        # print(np.array(path))
 
+        return np.array(path)
 
         
         
@@ -157,29 +165,123 @@ class myPlan():
                 if self.PQ.add_task(new_pose_ind, pre_g, cost, h = heristic):
                     parents[new_pose_ind] = preTask
         
+# --------------------------------------------------------------
+#                      Hacked by Anqi
+# --------------------------------------------------------------
         
-    def generateUGVScoreMap(self, IG_map = [], m_block = 0.,Dmax = 0, deploy_ = False ):
+    # def generateUGVScoreMap(self, IG_map = [], m_block = 0.,Dmax = 0, deploy_ = False ):
+    def generateUGVScoreMap(self, Dmax = 0):
         #TODO use euclidean? or other matric?
     
-        IG_map = np.array(IG_map)
-        score = np.divide(IG_map, self.distMap4UGV) 
-        if deploy_ :
-            m_block = 1/m_block
+        # IG_map = np.array(IG_map)
+        # score = np.divide(IG_map, self.distMap4UGV) 
+        score = np.divide(self.IG_map, self.distMap4UGV)
+        score = score*(1-self.occupMap)
+        # if deploy_ :
+            # m_block = 1/m_block
         
-        score *= m_block
-        
-        
-        if not deploy_:
+        # score *= m_block
+
+
+        if self.deploy_:
             for i in range(dim):
                 for j in range(dim):
-                    if self.distMap4UGV[j,i] <= Dmax:
+                    if self.occupMap[j,i]:
+                        continue
+                    if self.distMap4UAV[j,i] <= Dmax:
                         score[j,i] *= 1
                     else:
-                        score[j,i] *= Dmax/self.distMap4UGV[j,i] * self.penalty
+                        score[j,i] *= Dmax/self.distMap4UAV[j,i] * self.penalty
+
+        return score
+
+
+# --------------------------------------------------------------
+#                      Ends here
+# --------------------------------------------------------------
+
+
+# --------------------------------------------------------------
+#                      Anqi's code begins here
+# --------------------------------------------------------------
+
+
+    def generateUAVScoreMap(self,Dmax = 0):
+
+        score = np.divide(self.IG_map, self.distMap4UAV)
         
-        
-        
-        
+        for i in range(dim):
+            for j in range(dim):
+                if self.distMap4UGV[j,i] <= Dmax:
+                    score[j,i] *= 1
+                else:
+                    score[j,i] *= Dmax/self.distMap4UGV[j,i] * self.penalty
+
+        return score
+
+    def UAVGoBackPlan(self, UGVPath, UAVLoc, batteryLevel):
+        for i in range(UGVPath.shape[0]):
+            if np.max(np.abs(UGVPath[i,:]-UAVLoc)) <= batteryLevel:
+                r_step_ = i
+                break
+
+        r_loc_ = UGVPath[r_step_,:]
+
+        path = []
+        x_ = UAVLoc
+        for i in range(r_step_):
+            if r_loc_[0] > x_[0]:
+                x_[0] = x_[0]+1
+            if r_loc_[0] < x_[0]:
+                x_[0] = x_[0]-1
+
+            if r_loc_[1] > x_[1]:
+                x_[1] = x_[1]+1
+            if r_loc_[1] < x_[1]:
+                x_[1] = x_[1]-1
+            
+            path.append(x_)
+
+        path.reverse()
+        path = np.array(path)
+
+        UAVPath = UGVPath
+        UAVPath[:r_step_,:] = path
+        self.deploy_ = 0
+
+        return UAVPath
+
+
+    def updateVisitMap(self,UAVPath,UGVPath):
+        if self.deploy_:
+            self.visitMap[UAVPath[:,1],UAVPath[:,0]] += 1
+            self.visitMap[UGVPath[:,1],UGVPath[:,0]] += 1
+        else
+            self.visitMap[UGVPath[:,1],UGVPath[:,0]] += 1
+
+
+    def updateIGMap(self):
+        IG_Map_ = np.divide(((self.m_block-1)*self.worldMap+1),self.visitMap)
+        self.IG_Map = signal.convolve2d(IG_Map_,np.ones((3,3)),mode='same')  
+
+
+    def recordPath(self,UGVPath_,UAVPath_):
+        path_len_ = min(UGVPath_.shape[0],UAVPath_.shape[0])
+        self.UGVPath = np.append(self.UGVPath, UGVPath_[:path_len_,:], axis=0)
+        self.UAVPath = np.append(self.UAVPath, UAVPath_[:path_len_,:], axis=0)
+        assert self.UGVPath.shape[0] == self.UAVPath.shape[0]
+
+
+    def nearBlock(self,UGVX,UGVY):
+        for i in range(-1,2):
+            for j in range(-1,2)
+                if self.occupMap[UGVX+i,UGVY+j]:
+                    return True
+
+        return False
+# --------------------------------------------------------------
+#                      Anqi's code ends here
+# --------------------------------------------------------------
         
         
         
@@ -230,4 +332,16 @@ class priorityQ:# This class is modified from Python.org
 
 cost = np.ones([100,100])
 a = myPlan(worldMap=np.zeros([100,100]), costMap=cost, poseX=0, poseY=0, dim = 100)
+
+# --------------------------------------------------------------
+#                      Anqi's code begins here
+# --------------------------------------------------------------
+
+
+
+# --------------------------------------------------------------
+#                      Anqi's code ends here
+# --------------------------------------------------------------
+
+
 a.runAstar(0,0,20,20)
