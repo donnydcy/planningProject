@@ -180,7 +180,6 @@ class glWidget(QGLWidget):
     def DrawGround(self):
         glColor3f (0.3, 0.3, 0.3);
         glBegin(GL_LINES);
-        area = 50        
         for i in range(0,self.groundMap.width,2):
             glVertex3f(i, 0, 0); glVertex3f(i, self.groundMap.height, 0);
         for i in range(0,self.groundMap.height,2):

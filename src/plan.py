@@ -321,8 +321,8 @@ class myPlan():
 
 
     def updateIGMap(self):
-        # IG_Map_ = np.divide(((self.m_block-1)*self.occupMap+1),self.visitMap)
-        IG_Map_ = ((self.m_block-1)*self.occupMap+1)*np.exp(-self.visitMap)
+        IG_Map_ = np.divide(((self.m_block-1)*self.occupMap+1),self.visitMap)
+        # IG_Map_ = ((self.m_block-1)*self.occupMap+1)*np.exp(-self.visitMap)
         self.IG_Map = signal.convolve2d(IG_Map_,np.ones((3,3)),mode='same', boundary = 'symm')  
         
         np.savetxt('IG.txt', self.IG_Map, '%.2f')
