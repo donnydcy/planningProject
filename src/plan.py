@@ -42,13 +42,13 @@ class myPlan():
         self.UAVPath = np.array([])
         
         self.globalTimeThreshold = 200
-        self.batteryLife = 1000
-        self.batteryCapacity = 1000
+        self.batteryLife = 10
+        self.batteryCapacity = 10
         
         self.deploy_ = 0
         self.return_ = False
         
-        self.execute()
+        np.savetxt('costMap.txt', costMap, '%d')
         
         
                 
@@ -57,6 +57,7 @@ class myPlan():
         # run Dijkstra
         A_closelist = {}
         parent= {}
+        self.PQ = priorityQ()
         self.PQ.add_task(self.pix2ind([Y, X]),0,0)
         while(len(self.PQ.pq)>0):
             priority,g, key = self.PQ.pop_task()
@@ -94,19 +95,25 @@ class myPlan():
         
       
     def runAstar(self, startX, startY, goalX, goalY, isUAV = False):
-          
+
+        self.PQ=priorityQ()
         A_closelist = {}
         parent= {}
         self.PQ.add_task(self.pix2ind([startY, startX]),0,0)
+        
         while(len(self.PQ.pq)>0):
             priority,g, key = self.PQ.pop_task()
-   
+            if startX ==11 and startY ==2:        
+                print('xxx',key)
             A_closelist[key] = g 
 
             # if find goal, break the loop
             if key == self.pix2ind([goalY, goalX]):
-                  break
-
+                break
+            
+            if startX ==11 and startY ==2:        
+                print('xxx',startX, startY)
+                
             pos  = self.ind2pix(key)
             y = pos[0]
             x = pos[1]
@@ -222,7 +229,7 @@ class myPlan():
 
     def generateUAVScoreMap(self,Dmax = 0):
 
-        score = np.divide(self.IG_map, self.distMap4UAV+1)
+        score = np.divide(self.IG_Map, self.distMap4UAV+1)
         
         for i in range(self.dim):
             for j in range(self.dim):
@@ -236,21 +243,27 @@ class myPlan():
         return score
 
     def UAVGoBackPlan(self, UGVPath, UAVLoc, batteryLevel):
+        print("pre goback UAV location:",UAVLoc)
+        print("UGVPath: ", UGVPath)
         for i in range(UGVPath.shape[0]):
             if np.max(np.abs(UGVPath[i,:]-UAVLoc)) <= batteryLevel:
                 r_step_ = i
                 break
-                if i is UGVPath.shape[0]-1:
-                    r_step_ = np.max(np.abs(UGVPath[-1,:]-UAVLoc))
-                    np.append(UGVPath,np.matlib.repmat(UGVPath[-1,:],r_step_-UGVPath.shape[0],1),axis=0)
-                    assert UGVPath.shape[0] == r_step_
-                    break
+            print(UGVPath.shape[0])
+            if i is UGVPath.shape[0]-1:
+                r_step_ = np.max(np.abs(UGVPath[-1,:]-UAVLoc))
+                #np.append(UGVPath,np.matlib.repmat(UGVPath[-1,:],r_step_-UGVPath.shape[0],1),axis=0)
+                UGVPath = np.repeat(UGVPath,(UGVPath.shape[0]-1)*[1] +[r_step_-UGVPath.shape[0]+1],axis=0)
+                print(UGVPath.shape[0],r_step_)
+                assert UGVPath.shape[0] == r_step_
+                break
 
-        r_loc_ = UGVPath[r_step_,:]
-
+        r_loc_ = UGVPath[r_step_-1,:]
+    
         path = []
         x_ = UAVLoc
-        for i in range(r_step_):
+        path.append(x_)
+        for i in range(r_step_-1):
             if r_loc_[0] > x_[0]:
                 x_[0] = x_[0]+1
             if r_loc_[0] < x_[0]:
@@ -263,14 +276,15 @@ class myPlan():
             
             path.append(x_)
 
-        path.reverse()
+#        path.reverse()
         path = np.array(path)
 
+        
         UAVPath = UGVPath
-        UAVPath[:r_step_,:] = path
+        UAVPath[0:r_step_,:] = path
         self.deploy_ = 0
         
-        
+        print(UAVPath)
         
 
         return UGVPath, UAVPath
@@ -288,7 +302,7 @@ class myPlan():
         IG_Map_ = np.divide(((self.m_block-1)*self.occupMap+1),self.visitMap)
         self.IG_Map = signal.convolve2d(IG_Map_,np.ones((3,3)),mode='same', boundary = 'symm')  
         
-        np.savetxt('IG.txt', self.IG_Map, '%.2f')
+        #np.savetxt('IG.txt', self.IG_Map, '%.2f')
 
 
     def recordPath(self,UGVPath_,UAVPath_):
@@ -303,8 +317,8 @@ class myPlan():
             self.UAVPath = np.append(self.UAVPath, UAVPath_[1:path_len_,:], axis=0)
         assert self.UGVPath.shape[0] == self.UAVPath.shape[0]
         
-        np.savetxt('UGV.txt', self.UGVPath,'%d')
-        np.savetxt('UAV.txt', self.UAVPath,'%d')
+        #np.savetxt('UGV.txt', self.UGVPath,'%d')
+        #np.savetxt('UAV.txt', self.UAVPath,'%d')
         
 
 
@@ -321,68 +335,70 @@ class myPlan():
         
     def execute(self):
         
-        step = 0
         
-        while step < self.globalTimeThreshold:
-            
-            self.generateDistMap(self.UGVX, self.UGVY, isUAV = False)
-            if self.deploy_:
-                self.generateDistMap(self.UAVX, self.UAVY, isUAV = True)
         
-            self.updateIGMap()
+        #while step < self.globalTimeThreshold:
             
-            scoreMapUGV = self.generateUGVScoreMap(self.batteryLife * 0.9 )
-            UGVFrontier = np.unravel_index(scoreMapUGV.argmax(), scoreMapUGV.shape)
-            UGVPath = self.runAstar(self.UGVX,self.UGVY, UGVFrontier[1], UGVFrontier[0], isUAV = False)
-            
-            if self.deploy_:
-                scoreMapUAV = self.generateUAVScoreMap(self.batteryLife * 0.9 )
-                UAVFrontier = np.unravel_index(scoreMapUAV.argmax(), scoreMapUAV.shape)
-                if sp.spatial.distance.chebyshev(np.array(UAVFrontier), np.array(UGVFrontier)) < self.batteryLife * 0.9:
-                    UAVPath =  self.runAstar(self.UAVX,self.UAVY, UAVFrontier[1], UAVFrontier[0], isUAV = True)
-                else:
-                    UGVPath, UAVPath = self.UAVGoBackPlan(UGVPath, np.array([self.UAVY, self.UAVX]), self.batteryLife)
-                    self.return_ = True
-            
+        self.generateDistMap(self.UGVX, self.UGVY, isUAV = False)
+        if self.deploy_:
+            self.generateDistMap(self.UAVX, self.UAVY, isUAV = True)
+    
+        self.updateIGMap()
+        
+        scoreMapUGV = self.generateUGVScoreMap(self.batteryLife * 0.9 )
+        UGVFrontier = np.unravel_index(scoreMapUGV.argmax(), scoreMapUGV.shape)
+        UGVPath = self.runAstar(self.UGVX,self.UGVY, UGVFrontier[1], UGVFrontier[0], isUAV = False)
+        
+        if self.deploy_:
+            scoreMapUAV = self.generateUAVScoreMap(self.batteryLife * 0.9 )
+            UAVFrontier = np.unravel_index(scoreMapUAV.argmax(), scoreMapUAV.shape)
+            if sp.spatial.distance.chebyshev(np.array(UAVFrontier), np.array(UGVFrontier)) < self.batteryLife * 0.9:
+                UAVPath =  self.runAstar(self.UAVX,self.UAVY, UAVFrontier[1], UAVFrontier[0], isUAV = True)
             else:
-                UAVPath = UGVPath
+                print(self.UGVX,self.UGVY, UGVFrontier)
+                UGVPath, UAVPath = self.UAVGoBackPlan(UGVPath, np.array([self.UAVY, self.UAVX]), self.batteryLife)
+                self.return_ = True
         
-            # TODO: will UAVPath be zero length?
+        else:
+            UAVPath = UGVPath
+    
+        # TODO: will UAVPath be zero length?
+    
+        minTimeStep  = min(len(UAVPath),len(UGVPath))
+       # step += minTimeStep-1
         
-            minTimeStep  = min(len(UAVPath),len(UGVPath))
-            step += minTimeStep-1
+      #  print(step)
+        
+        
+        self.updateVisitMap(UAVPath[0:minTimeStep,:], UGVPath[0:minTimeStep,:])
+        self.UAVX = UAVPath[minTimeStep-1,1]
+        self.UAVY = UAVPath[minTimeStep-1,0]
+        self.UGVX = UGVPath[minTimeStep-1,1]
+        self.UGVY = UGVPath[minTimeStep-1,0]
+        
+        #print(minTimeStep, len(UGVPath), len(UAVPath))            
+        self.recordPath( UGVPath[0:(minTimeStep),:], UAVPath[0:(minTimeStep),:])
+        
+                    
+        
+        if self.deploy_:
+            self.batteryLife -= minTimeStep
             
-            print(step)
+        if self.nearBlock(self.UGVX,self.UGVY) and not self.return_ and not self.deploy_:
+            self.deploy_ = True
+            print('deploying')
             
+        if self.return_ == True:
+            self.batteryLife = self.batteryCapacity
+            self.return_ = False
+            self.deploy_ = False
             
-            self.updateVisitMap(UAVPath[0:minTimeStep,:], UGVPath[0:minTimeStep,:])
-            self.UAVX = UAVPath[minTimeStep-1,1]
-            self.UAVY = UAVPath[minTimeStep-1,0]
-            self.UGVX = UGVPath[minTimeStep-1,1]
-            self.UGVY = UGVPath[minTimeStep-1,0]
+        if self.batteryLife <= 0:
+            print('wrong batteryLife')                
+       #     break
             
-            #print(minTimeStep, len(UGVPath), len(UAVPath))            
-            self.recordPath( UGVPath[0:(minTimeStep),:], UAVPath[0:(minTimeStep),:])
-            
-                        
-            
-            if self.deploy_:
-                self.batteryLife -= minTimeStep
-                
-            if self.nearBlock(self.UGVX,self.UGVY) and not self.return_ and not self.deploy_:
-                self.deploy_ = True
-                
-            if self.return_ == True:
-                self.batteryLife = self.batteryCapacity
-                self.return_ = False
-                self.deploy_ = False
-                
-            if self.batteryLife <= 0:
-                print('wrong batteryLife')                
-                break
-                
-            np.savetxt('visit.txt', self.visitMap,'%d')
-            np.savetxt('score.txt', scoreMapUGV, '%.4f')
+        #np.savetxt('visit.txt', self.visitMap,'%d')
+        #np.savetxt('score.txt', scoreMapUGV, '%.4f')
                 
             
             
@@ -444,9 +460,6 @@ class priorityQ:# This class is modified from Python.org
                 return priority, g, task
                 raise KeyError('pop from an empty priority queue')
 
-
-cost = np.ones([100,100])
-a = myPlan(worldMap=np.zeros([100,100]), costMap=cost, poseX=0, poseY=0, dim = 100)
 
 # --------------------------------------------------------------
 #                      Anqi's code begins here
