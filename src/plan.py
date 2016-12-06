@@ -21,6 +21,7 @@ class myPlan():
         self.occupMap = worldMap
         self.costMap = costMap
         self.visitMap = np.ones([dim,dim])
+        self.IG_Map = 9*np.ones([dim,dim])*(self.occupMap+1)
         self.UGVX = poseX
         self.UGVY = poseY
         self.UAVX = poseX
@@ -320,10 +321,11 @@ class myPlan():
 
 
     def updateIGMap(self):
-        IG_Map_ = np.divide(((self.m_block-1)*self.occupMap+1),self.visitMap)
+        # IG_Map_ = np.divide(((self.m_block-1)*self.occupMap+1),self.visitMap)
+        IG_Map_ = ((self.m_block-1)*self.occupMap+1)*np.exp(-self.visitMap)
         self.IG_Map = signal.convolve2d(IG_Map_,np.ones((3,3)),mode='same', boundary = 'symm')  
         
-        #np.savetxt('IG.txt', self.IG_Map, '%.2f')
+        np.savetxt('IG.txt', self.IG_Map, '%.2f')
 
 
     def recordPath(self,UGVPath_,UAVPath_):

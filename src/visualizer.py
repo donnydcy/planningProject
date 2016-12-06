@@ -21,6 +21,8 @@ from plan import *
 GROUND_MAP = '../data/map_manhattan.txt'
 AERIAL_MAP = '../data/map_manhattan.txt'
 
+COLORS = [[255,255,0],[255,195,0],[255,87,51],[199,0,57],[144,12,63],[88,24,69]]
+
 
 class Leaf3DPose():
     def __init__(self,X=0,Y=0,Z=0,RotX =0, RotY = 0, RotZ =0):
@@ -185,6 +187,7 @@ class glWidget(QGLWidget):
             glVertex3f(0, i, 0); glVertex3f(self.groundMap.width, i, 0);        
         
         glEnd();
+
         glColor4f(0.3,0.3,0.3,0.2)
         glBegin(GL_QUADS)
         glVertex3f(0,0,0)
@@ -200,6 +203,8 @@ class glWidget(QGLWidget):
         glVertex3f(self.groundMap.width,self.groundMap.height,20)
         glVertex3f(0,self.groundMap.height,20)
         glEnd()
+
+        # [self.DrawPatch(i,j,0.0,np.array(COLORS[int(round(self.a.IG_Map[j][i]/18*5))])/255.0) for i in range(self.groundMap.width) for j in range(self.groundMap.height)]
 
 
     def DrawObstacles(self):
