@@ -105,18 +105,18 @@ class myPlan():
         while(len(self.PQ.pq)>0):
             priority,g, key = self.PQ.pop_task()
 
-            if key in A_closelist:
-                continue
-            if startX ==11 and startY ==2:        
-                print('xxx',key)
+            print('***',key)
+
+            # if startX ==11 and startY ==2:        
+            #     print('xxx',key)
             A_closelist[key] = g 
 
             # if find goal, break the loop
             if key == self.pix2ind([goalY, goalX]):
                 break
             
-            if startX ==11 and startY ==2:        
-                print('xxx',startX, startY)
+            # if startX ==11 and startY ==2:        
+            #     print('xxx',startX, startY)
                 
             pos  = self.ind2pix(key)
             y = pos[0]
@@ -142,14 +142,14 @@ class myPlan():
 
         # get path from Astar result
         node = self.pix2ind([goalY, goalX])
-        path = []        
+        path = []
         path.append([goalY,goalX])
         while node in parent:
             new_node = parent[node]
-            print(new_node)
             path.append(self.ind2pix(new_node))
             node = new_node
 
+        print(path)
         # path.reverse()
         # print(np.array(path))
 
@@ -193,6 +193,8 @@ class myPlan():
             if new_pose_ind not in closeList:
                 if self.PQ.add_task(new_pose_ind, pre_g, cost, h = heristic):
                     parents[new_pose_ind] = preTask
+                    # print(new_pose_ind)
+                    # print('parents of 0: ',parents[0])
         
 # --------------------------------------------------------------
 #                      Hacked by Anqi
@@ -459,7 +461,7 @@ class priorityQ:# This class is modified from Python.org
         entry = [priority, g, count, task]
         self.entry_finder[task] = entry
         heappush(self.pq, entry)
-        return task
+        return True
 
     def remove_task(self,task):
     #'Mark an existing task as REMOVED.  Raise KeyError if not found.'

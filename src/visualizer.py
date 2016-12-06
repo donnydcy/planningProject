@@ -91,17 +91,17 @@ class glWidget(QGLWidget):
         
         cost = np.zeros([100,100])
         self.a = myPlan(np.array(self.groundMap.data).transpose(), np.array(self.groundMap.data).transpose()*499+1)
-        self.a.generateDistMap(12,1)
-        ugvPath = self.a.runAstar(0,0,12,1)
-        print(ugvPath)
-        self.ugvPath = [[node[1],node[0]] for node in ugvPath]
-        self.uavPath = [[node[1],node[0]] for node in ugvPath]
-        self.updateGL()
+        # self.a.generateDistMap(12,1)
+        # ugvPath = self.a.runAstar(0,0,1,1)
+        # print(ugvPath)
+        # self.ugvPath = [[node[1],node[0]] for node in ugvPath]
+        # self.uavPath = [[node[1],node[0]] for node in ugvPath]
+        # self.updateGL()
         # self.moveObject()
-        # self.timer = QtCore.QTimer()
-        # self.timer.timeout.connect(self.moveObject)
-        # interval = 1000.0 / 50.0
-        # self.timer.start( interval )
+        self.timer = QtCore.QTimer()
+        self.timer.timeout.connect(self.moveObject)
+        interval = 1000.0 / 50.0
+        self.timer.start( interval )
         print('initialization done')
   
     def paintGL(self):
