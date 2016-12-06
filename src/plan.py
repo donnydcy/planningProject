@@ -104,6 +104,9 @@ class myPlan():
         
         while(len(self.PQ.pq)>0):
             priority,g, key = self.PQ.pop_task()
+
+            if key in A_closelist:
+                continue
             if startX ==11 and startY ==2:        
                 print('xxx',key)
             A_closelist[key] = g 
@@ -143,10 +146,11 @@ class myPlan():
         path.append([goalY,goalX])
         while node in parent:
             new_node = parent[node]
+            print(new_node)
             path.append(self.ind2pix(new_node))
             node = new_node
 
-        #path.reverse()
+        # path.reverse()
         # print(np.array(path))
 
         return np.array(path)
@@ -168,10 +172,13 @@ class myPlan():
     # move a cell and insert to pq, a building block to Dijkstra
     def move(self, parents, closeList,X,Y, preTask, pre_g, A_flag = False, isUAV_flag = False):
         new_pose = self.checkBoarder([Y,X])
-        cost = 1
         if new_pose :
             if not A_flag:
                 heristic = 0
+                if isUAV_flag:                    
+                    cost = 1
+                else:
+                    cost = self.costMap[Y,X]
             else:
                 # if use A*, herisitic gerenated from distMap
                 if isUAV_flag:                    
@@ -179,7 +186,8 @@ class myPlan():
                     cost = 1
                 else:
                     heristic = self.distMap4UGV[Y,X] * self.AstarWeight                    
-                    cost = self.costMap[Y,X]
+                    pos = self.ind2pix(preTask)
+                    cost = self.costMap[pos[0],pos[1]]
                     
             new_pose_ind = self.pix2ind(new_pose)
             if new_pose_ind not in closeList:
@@ -349,8 +357,11 @@ class myPlan():
         
         scoreMapUGV = self.generateUGVScoreMap(self.batteryLife * 0.9 )
         UGVFrontier = np.unravel_index(scoreMapUGV.argmax(), scoreMapUGV.shape)
+        print(UGVFrontier)
+        print(self.UGVX,self.UGVY)
         UGVPath = self.runAstar(UGVFrontier[1], UGVFrontier[0], self.UGVX,self.UGVY, isUAV = False)
-        
+        print(UGVPath)
+
         if self.deploy_:
             scoreMapUAV = self.generateUAVScoreMap(self.batteryLife * 0.9 )
             UAVFrontier = np.unravel_index(scoreMapUAV.argmax(), scoreMapUAV.shape)
@@ -377,6 +388,8 @@ class myPlan():
         self.UAVY = UAVPath[minTimeStep-1,0]
         self.UGVX = UGVPath[minTimeStep-1,1]
         self.UGVY = UGVPath[minTimeStep-1,0]
+
+
         
         #print(minTimeStep, len(UGVPath), len(UAVPath))            
         self.recordPath( UGVPath[0:(minTimeStep),:], UAVPath[0:(minTimeStep),:])

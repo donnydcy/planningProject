@@ -57,12 +57,12 @@ class glWidget(QGLWidget):
     def __init__(self, parent):
         QGLWidget.__init__(self, parent)
         self.setMinimumSize(640, 480)
-        self.ugvX = 0
-        self.ugvY = 0
+        self.ugvX = 2
+        self.ugvY = 11
         self.ugvZ = 0
 
-        self.uavX = 0
-        self.uavY = 0
+        self.uavX = 2
+        self.uavY = 11
         self.uavZ = 20
 
         self.ugvPath = [[self.ugvX,self.ugvY,self.ugvZ]]
@@ -91,13 +91,17 @@ class glWidget(QGLWidget):
         
         cost = np.zeros([100,100])
         self.a = myPlan(np.array(self.groundMap.data).transpose(), np.array(self.groundMap.data).transpose()*499+1)
-        #self.a.generateDistMap(20,2)
-        #print(self.a.runAstar(0,0,20,2))
-        #self.moveObject()
-        self.timer = QtCore.QTimer()
-        self.timer.timeout.connect(self.moveObject)
-        interval = 1000.0 / 50.0
-        self.timer.start( interval )
+        self.a.generateDistMap(12,1)
+        ugvPath = self.a.runAstar(0,0,12,1)
+        print(ugvPath)
+        self.ugvPath = [[node[1],node[0]] for node in ugvPath]
+        self.uavPath = [[node[1],node[0]] for node in ugvPath]
+        self.updateGL()
+        # self.moveObject()
+        # self.timer = QtCore.QTimer()
+        # self.timer.timeout.connect(self.moveObject)
+        # interval = 1000.0 / 50.0
+        # self.timer.start( interval )
         print('initialization done')
   
     def paintGL(self):
@@ -205,8 +209,8 @@ class glWidget(QGLWidget):
         [self.DrawPatch(i,j,20,[0.5,0.5,1]) for i in range(self.aerialMap.width) for j in range(self.aerialMap.height) if self.aerialMap.data[i][j]]
 
     def DrawFootprint(self):
-        [self.DrawPatch(loc[0],loc[1],loc[2],[0,1,0]) for loc in self.ugvPath]
-        [self.DrawPatch(loc[0],loc[1],loc[2],[1,0.5,0]) for loc in self.uavPath]
+        [self.DrawPatch(loc[0],loc[1],0,[0,1,0]) for loc in self.ugvPath]
+        [self.DrawPatch(loc[0],loc[1],20,[1,0.5,0]) for loc in self.uavPath]
 
     # draw individual patches, used by drawObstacles
     def DrawPatch(self,x,y,z,color):
@@ -221,15 +225,16 @@ class glWidget(QGLWidget):
         
         
     def mousePressEvent(self, event):
-        self.moveObject()
-        self.lastPos = QtCore.QPoint(event.pos())
-        self.ugvX +=1
-        self.ugvY +=1
-        self.uavX +=1
-        self.uavY +=1
-        self.ugvPath.append([self.ugvX,self.ugvY,self.ugvZ])
-        self.uavPath.append([self.uavX,self.uavY,self.uavZ])
-        self.updateGL()
+        # self.moveObject()
+        # self.lastPos = QtCore.QPoint(event.pos())
+        # self.ugvX +=1
+        # self.ugvY +=1
+        # self.uavX +=1
+        # self.uavY +=1
+        # self.ugvPath.append([self.ugvX,self.ugvY,self.ugvZ])
+        # self.uavPath.append([self.uavX,self.uavY,self.uavZ])
+        # self.updateGL()
+        pass
 
 
         
@@ -270,7 +275,9 @@ class glWidget(QGLWidget):
         
     def moveObject(self):
         self.a.execute()
+
         print('execute done')
+        # print(self.a.UGVPath)
         self.ugvX = self.a.UGVX
         self.ugvY = self.a.UGVY
         self.uavX = self.a.UAVX
@@ -279,8 +286,6 @@ class glWidget(QGLWidget):
         
         self.uavPath.append([self.uavX,self.uavY,self.uavZ])
         self.updateGL()
-               
-            
 
         
 
