@@ -18,8 +18,8 @@ from time import sleep
 from plan import *
 
 # path to map files
-GROUND_MAP = '../data/map_one.txt'
-AERIAL_MAP = '../data/map_one.txt'
+GROUND_MAP = '../data/map_manhattan.txt'
+AERIAL_MAP = '../data/map_manhattan.txt'
 
 
 class Leaf3DPose():
@@ -282,9 +282,11 @@ class glWidget(QGLWidget):
         self.ugvY = self.a.UGVY
         self.uavX = self.a.UAVX
         self.uavY = self.a.UAVY
-        self.ugvPath.append([self.ugvX,self.ugvY,self.ugvZ])
+        self.ugvPath = [[node[1],node[0]] for node in self.a.UGVPath]
+        self.uavPath = [[node[1],node[0]] for node in self.a.UAVPath]
+        # self.ugvPath.append([self.ugvX,self.ugvY,self.ugvZ])
         
-        self.uavPath.append([self.uavX,self.uavY,self.uavZ])
+        # self.uavPath.append([self.uavX,self.uavY,self.uavZ])
         self.updateGL()
 
         
