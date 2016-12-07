@@ -17,7 +17,7 @@ import math
 
 class myPlan():
 
-    def __init__(self, worldMap=[], costMap=[], poseX=22, poseY=22, dim = 100):
+    def __init__(self, worldMap=[], costMap=[], poseX=0, poseY=0, dim=10 ):
         self.occupMap = worldMap
         self.costMap = costMap
         self.visitMap = np.ones([dim,dim])
@@ -47,7 +47,7 @@ class myPlan():
         ### tunning parameter
         self.paradist = 0.3
         self.paraig = 1 - self.paradist
-        self.penalty = 0.01 #0.3  0.8
+        self.penalty = 0.0001 #0.3  0.8 0.01
         self.m_block = 2
         self.AstarWeight = 1.05
 
@@ -333,7 +333,7 @@ class myPlan():
         print("pre goback UAV location:",UAVLoc)
         print("UGVPath: ", UGVPath)
         print("batteryLevel back:", batteryLevel)
-
+        r_step_ = 0
         for i in range(batteryLevel):
             if i < UGVPath.shape[0]:
                 if sp.spatial.distance.chebyshev(UGVPath[i,:],UAVLoc) < i:
