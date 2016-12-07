@@ -47,7 +47,7 @@ class myPlan():
         ### tunning parameter
         self.paradist = 0.3
         self.paraig = 1 - self.paradist
-        self.penalty = 0.01 #0.3  0.8
+        self.penalty = 0.0001 #0.3  0.8 0.01
         self.m_block = 2
         self.AstarWeight = 1.05
 
