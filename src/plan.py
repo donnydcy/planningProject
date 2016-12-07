@@ -60,7 +60,7 @@ class myPlan():
         
         self.visit = 0
         self.visitlist = np.array([])
-        
+        self.timeSegList = np.array([])
     
         
         ### end tunning para
@@ -473,7 +473,7 @@ class myPlan():
     def execute(self):
         
         
-        
+        nowTime = time.time()
         #while step < self.globalTimeThreshold:
             
         self.generateDistMap(self.UGVX, self.UGVY, isUAV = False)
@@ -535,8 +535,16 @@ class myPlan():
         self.getaccIG(UGVPath[0:(minTimeStep),:], UAVPath[0:(minTimeStep),:])
         self.countVisit()
         
+        
+        nextTime = time.time()
+        
+        self.timeSegList = np.append(self.timeSegList, np.array(nextTime - nowTime))
+        
+        print("Coverage:",self.visit)
+        
         np.savetxt('../results/IGlist.txt',self.iglist,'%.4f')
         np.savetxt('../results/visitlist.txt',self.visitlist,'%.4f')
+        np.savetxt('../results/timelist.txt',self.timeSegList,'%.4f')
     
         
         if self.deploy_:

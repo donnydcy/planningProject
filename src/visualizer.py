@@ -22,8 +22,8 @@ from plan import *
 
 
 # path to map files
-GROUND_MAP = '../data/map_manhattan.txt'
-AERIAL_MAP = '../data/map_manhattan.txt'
+GROUND_MAP = '../data/map_random.txt'
+AERIAL_MAP = '../data/map_random.txt'
 
 COLORS = [[255,255,0],[255,195,0],[255,87,51],[199,0,57],[144,12,63],[88,24,69]]
 
@@ -64,7 +64,7 @@ class glWidget(QGLWidget):
         
         self.fps = 15 #5 # animation update rate
         
-        self.totalFrames = 200
+        self.totalFrames = 20000
         self.FrameCounter = 0
         # this is a quick fix
         if platform.system() == 'Windows':
