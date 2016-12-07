@@ -137,26 +137,30 @@ class glWidget(QGLWidget):
 
 
         
-        glBegin(GL_QUADS)
-        glVertex3f(self.ugvX-0.5, self.ugvY-0.5, self.ugvZ)
-        glVertex3f(self.ugvX+0.5, self.ugvY-0.5, self.ugvZ)
-        glVertex3f(self.ugvX+0.5, self.ugvY+0.5, self.ugvZ)
-        glVertex3f(self.ugvX-0.5, self.ugvY+0.5, self.ugvZ)
-        glEnd()
+#        glBegin(GL_QUADS)
+#        glVertex3f(self.ugvX-0.5, self.ugvY-0.5, self.ugvZ)
+#        glVertex3f(self.ugvX+0.5, self.ugvY-0.5, self.ugvZ)
+#        glVertex3f(self.ugvX+0.5, self.ugvY+0.5, self.ugvZ)
+#        glVertex3f(self.ugvX-0.5, self.ugvY+0.5, self.ugvZ)
+#        glEnd()
 
-        glBegin(GL_QUADS)
-        glVertex3f(self.uavX-0.5, self.uavY-0.5, self.uavZ)
-        glVertex3f(self.uavX+0.5, self.uavY-0.5, self.uavZ)
-        glVertex3f(self.uavX+0.5, self.uavY+0.5, self.uavZ)
-        glVertex3f(self.uavX-0.5, self.uavY+0.5, self.uavZ)
+#        glBegin(GL_QUADS)
+#        glVertex3f(self.uavX-0.5, self.uavY-0.5, self.uavZ)
+#        glVertex3f(self.uavX+0.5, self.uavY-0.5, self.uavZ)
+#        glVertex3f(self.uavX+0.5, self.uavY+0.5, self.uavZ)
+#        glVertex3f(self.uavX-0.5, self.uavY+0.5, self.uavZ)
+        
         # glVertex3f(self.x-2.6,  self.y+0.0, self.z)
         # glVertex3f(self.x-2.9,  self.y-1.2, self.z)
-        glEnd()
+#        glEnd()
+        
+        self.drawUGV(self.ugvX,self.ugvY,0)
+        
+        self.drawUAV(self.uavX,self.uavY,0)
         
         self.DrawFootprint()
         self.DrawObstacles()
         self.DrawGround()
-        
         glPopMatrix()
               
         
@@ -180,7 +184,7 @@ class glWidget(QGLWidget):
         
      
                    
-        gluLookAt(0,0 ,self.cameraZ,   0, 0, 0,   0, 1, 0); 
+        gluLookAt(0, 0,self.cameraZ, 0, 0, 0, 0, 1, 0); 
         glMatrixMode(GL_MODELVIEW)
         
         
@@ -214,12 +218,13 @@ class glWidget(QGLWidget):
         glVertex3f(0,self.groundMap.height,20)
         glEnd()
 
+        
         # [self.DrawPatch(i,j,0.0,np.array(COLORS[int(round(self.a.IG_Map[j][i]/18*5))])/255.0) for i in range(self.groundMap.width) for j in range(self.groundMap.height)]
 
 
     def DrawObstacles(self):
         # show obstacles in ground map in white
-        [self.DrawPatch(i,j,0.0,[1,1,1]) for i in range(self.groundMap.width) for j in range(self.groundMap.height) if self.groundMap.data[i][j]]
+        [self.DrawWall3D(i,j,10.0,[.1,0.3,0.1]) for i in range(self.groundMap.width) for j in range(self.groundMap.height) if self.groundMap.data[i][j]]
         # show obstacles in aerial map in blue
         [self.DrawPatch(i,j,20,[0.5,0.5,1]) for i in range(self.aerialMap.width) for j in range(self.aerialMap.height) if self.aerialMap.data[i][j]]
 
@@ -230,7 +235,7 @@ class glWidget(QGLWidget):
     # draw individual patches, used by drawObstacles
     def DrawPatch(self,x,y,z,color):
         glPolygonMode(GL_FRONT, GL_FILL)
-        glColor4f(color[0],color[1],color[2],0.8)
+        glColor4f(color[0],color[1],color[2],.8)
         glBegin(GL_QUADS)
         glVertex3f(x-0.5,y-0.5, z)
         glVertex3f(x+0.5,y-0.5, z)
@@ -238,6 +243,43 @@ class glWidget(QGLWidget):
         glVertex3f(x-0.5,y+0.5, z)
         glEnd()
         
+    def DrawWall3D(self, x, y ,z,  color):
+        glPolygonMode(GL_FRONT, GL_FILL)
+
+        
+        glBegin(GL_QUADS)
+        
+        glColor3f(1.0, 0.0, 0.0);  
+        glVertex3f(x-0.5,y-0.5, 0)
+        glVertex3f(x-0.5,y-0.5, z)
+        glVertex3f(x+0.5,y-0.5, z)
+        glVertex3f(x+0.5,y-0.5, 0)
+        
+        glColor3f(0.0, 0.0, 1.0)
+        glVertex3f(x-0.5,y-0.5, 0)
+        glVertex3f(x-0.5,y-0.5, z)
+        glVertex3f(x-0.5,y+0.5, z)
+        glVertex3f(x-0.5,y+0.5, 0)        
+        
+        glColor3f(1.0, 0.0, 1.0)
+        glVertex3f(x-0.5,y+0.5, 0)
+        glVertex3f(x-0.5,y+0.5, z)
+        glVertex3f(x+0.5,y+0.5, z)
+        glVertex3f(x+0.5,y+0.5, 0)        
+
+        glColor3f(1.0, 0.5, 0.0)
+        glVertex3f(x+0.5,y+0.5, 0)
+        glVertex3f(x+0.5,y+0.5, z)
+        glVertex3f(x-0.5,y+0.5, z)
+        glVertex3f(x-0.5,y+0.5, 0)     
+        
+        glColor4f(color[0],color[1],color[2],1.)
+        glVertex3f(x+0.5,y+0.5, z)
+        glVertex3f(x-0.5,y+0.5, z)
+        glVertex3f(x-0.5,y-0.5, z)
+        glVertex3f(x+0.5,y-0.5, z)   
+
+        glEnd()
         
     def mousePressEvent(self, event):
         # self.moveObject()
@@ -291,8 +333,6 @@ class glWidget(QGLWidget):
     def moveObject(self):
         self.a.execute()
 
-        print('execute done')
-        # print(self.a.UGVPath)
         self.ugvX = self.a.UGVX
         self.ugvY = self.a.UGVY
         self.uavX = self.a.UAVX
@@ -304,7 +344,24 @@ class glWidget(QGLWidget):
         # self.uavPath.append([self.uavX,self.uavY,self.uavZ])
         self.updateGL()
 
-        
+    def drawUAV(self, x, y, z):
+        glPushMatrix()
+        glTranslatef(x,y,20)
+        quadratic = gluNewQuadric()
+        gluDisk(quadratic,0.1,1,4,4)
+        glPopMatrix()
+
+        pass
+    
+    def drawUGV(self, x, y ,z):
+        glPushMatrix()
+        glTranslatef(x,y,0)
+        quadratic = gluNewQuadric()
+        gluCylinder(quadratic, 1,1,10,10,10 )
+        glPopMatrix()
+        pass
+    
+    
 
     def loadMap(self, mapFile):
         mapData = np.loadtxt(mapFile)
