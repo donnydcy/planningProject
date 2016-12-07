@@ -15,15 +15,15 @@ from PyQt4.QtOpenGL import *
 from PIL.Image import open
 import numpy as np
 from time import sleep
-import os
+import sys
 import platform
 from plan import *
 
 
 
 # path to map files
-GROUND_MAP = '../data/map_random.txt'
-AERIAL_MAP = '../data/map_random.txt'
+GROUND_MAP = '../data/map_smalldemo.txt'
+AERIAL_MAP = '../data/map_smalldemo.txt'
 
 COLORS = [[255,255,0],[255,195,0],[255,87,51],[199,0,57],[144,12,63],[88,24,69]]
 
@@ -62,6 +62,10 @@ class glWidget(QGLWidget):
     
     def __init__(self, parent):
         
+        self.fps = 3 #5 # animation update rate
+        self.fov = 15 # field of view
+        self.totalFrames = 200
+        self.FrameCounter = 0
         # this is a quick fix
         if platform.system() == 'Windows':
             QGLWidget.__init__(self)#, parent)
@@ -101,8 +105,7 @@ class glWidget(QGLWidget):
 
         self.setFocusPolicy(QtCore.Qt.StrongFocus)
         
-      
-        self.a = myPlan(np.array(self.groundMap.data).transpose(), np.array(self.groundMap.data).transpose()*499+1)
+        self.a = myPlan(np.array(self.groundMap.data).transpose(), np.array(self.groundMap.data).transpose()*499+1, dim = len(self.groundMap.data))
 #        self.a.generateDistMap(12,1)
 #        ugvPath = self.a.runAstar(0,0,12,1)
 #        print(ugvPath)
@@ -113,8 +116,13 @@ class glWidget(QGLWidget):
 
         self.timer = QtCore.QTimer()
         self.timer.timeout.connect(self.moveObject)
-        interval = 1000.0 / 50.0
+        interval = 1000.0 / self.fps
+        self.timer.setInterval(interval)
         self.timer.start( interval )
+        
+        
+       
+
         print('initialization done')
   
     def paintGL(self):
@@ -180,7 +188,7 @@ class glWidget(QGLWidget):
         glBlendFunc (GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
         glMatrixMode(GL_PROJECTION)
         glLoadIdentity()                    
-        gluPerspective(35,1.33,0.1, 800.0) 
+        gluPerspective(self.fov,1.33,0.1, 800.0) 
         
      
                    
@@ -331,7 +339,13 @@ class glWidget(QGLWidget):
               
         
     def moveObject(self):
+        self.FrameCounter +=1
+        if self.FrameCounter >= self.totalFrames:
+            sys.exit()
+            
         self.a.execute()
+        
+        print("Remaining Battery Life:",self.a.batteryLife)  # Wenhao
 
         self.ugvX = self.a.UGVX
         self.ugvY = self.a.UGVY
@@ -358,6 +372,13 @@ class glWidget(QGLWidget):
         glTranslatef(x,y,0)
         quadratic = gluNewQuadric()
         gluCylinder(quadratic, 1,1,10,10,10 )
+        glPopMatrix()
+        
+        glPushMatrix()
+        glTranslate(x,y,10)
+        glColor4d(.8, .8, 0.,0.8)
+        gluDisk(quadratic, 0.,1,20,1)
+
         glPopMatrix()
         pass
     

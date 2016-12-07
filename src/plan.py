@@ -17,7 +17,7 @@ import math
 
 class myPlan():
 
-    def __init__(self, worldMap=[], costMap=[], poseX=22, poseY=22, dim = 100):
+    def __init__(self, worldMap=[], costMap=[], poseX=0, poseY=0, dim=10 ):
         self.occupMap = worldMap
         self.costMap = costMap
         self.visitMap = np.ones([dim,dim])
@@ -333,7 +333,7 @@ class myPlan():
         print("pre goback UAV location:",UAVLoc)
         print("UGVPath: ", UGVPath)
         print("batteryLevel back:", batteryLevel)
-
+        r_step_ = 0
         for i in range(batteryLevel):
             if i < UGVPath.shape[0]:
                 if sp.spatial.distance.chebyshev(UGVPath[i,:],UAVLoc) < i:
