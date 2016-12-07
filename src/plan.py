@@ -59,8 +59,8 @@ class myPlan():
         
         ### end tunning para
         
-        np.savetxt('costMap.txt', costMap, '%d')
-        
+        #np.savetxt('costMap.txt', costMap, '%d')
+        self.IGsum = np.array([])
         
                 
         
@@ -405,7 +405,11 @@ class myPlan():
         # IG_Map_ = ((self.m_block-1)*self.occupMap+1)*np.exp(-self.visitMap)
         self.IG_Map = signal.convolve2d(IG_Map_,np.ones((3,3)),mode='same', boundary = 'symm')  
         
-        np.savetxt('IG.txt', self.IG_Map, '%.2f')
+        # for summary:
+        self.IGsum = np.append(self.IGsum, sum(self.IG_Map)) 
+        
+        
+        
 
 
     def recordPath(self,UGVPath_,UAVPath_):
@@ -521,7 +525,9 @@ class myPlan():
         #np.savetxt('visit.txt', self.visitMap,'%d')
         #np.savetxt('score.txt', scoreMapUGV, '%.4f')
                 
-            
+    def summarize(self):
+        np.savetxt('../results/IGsum.txt',self.IGsum,'%.4f')
+        np.savetxt('../results/IGmap.txt',self.IG_Map,'%.4f')
             
             
             

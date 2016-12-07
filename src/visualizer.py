@@ -22,8 +22,8 @@ from plan import *
 
 
 # path to map files
-GROUND_MAP = '../data/map_smalldemo.txt'
-AERIAL_MAP = '../data/map_smalldemo.txt'
+GROUND_MAP = '../data/map_manhattan.txt'
+AERIAL_MAP = '../data/map_manhattan.txt'
 
 COLORS = [[255,255,0],[255,195,0],[255,87,51],[199,0,57],[144,12,63],[88,24,69]]
 
@@ -62,8 +62,8 @@ class glWidget(QGLWidget):
     
     def __init__(self, parent):
         
-        self.fps = 3 #5 # animation update rate
-        self.fov = 15 # field of view
+        self.fps = 15 #5 # animation update rate
+        self.fov = 45 # field of view
         self.totalFrames = 200
         self.FrameCounter = 0
         # this is a quick fix
@@ -341,6 +341,7 @@ class glWidget(QGLWidget):
     def moveObject(self):
         self.FrameCounter +=1
         if self.FrameCounter >= self.totalFrames:
+            self.a.summarize()
             sys.exit()
             
         self.a.execute()
