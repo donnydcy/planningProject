@@ -14,7 +14,7 @@ from PyQt4 import QtGui,QtCore
 from PyQt4.QtOpenGL import *
 from PIL.Image import open
 import numpy as np
-from time import sleep
+import time
 import sys
 import platform
 from plan import *
@@ -63,14 +63,16 @@ class glWidget(QGLWidget):
     def __init__(self, parent):
         
         self.fps = 15 #5 # animation update rate
-        self.fov = 45 # field of view
-        self.totalFrames = 200
+        
+        self.totalFrames = 10
         self.FrameCounter = 0
         # this is a quick fix
         if platform.system() == 'Windows':
             QGLWidget.__init__(self)#, parent)
+            self.fov = 15 # field of view
         else:
             QGLWidget.__init__(self, parent)
+            self.fov = 45 # field of view
             
         self.setMinimumSize(800, 600)
         #self.setMinimumSize(320, 240)
@@ -342,9 +344,8 @@ class glWidget(QGLWidget):
         self.FrameCounter +=1
         if self.FrameCounter >= self.totalFrames:
             self.a.summarize()
-            sys.exit()
-            
-        self.a.execute()
+        else:    
+            self.a.execute()
         
         print("Remaining Battery Life:",self.a.batteryLife)  # Wenhao
 

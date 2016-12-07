@@ -13,7 +13,7 @@ from scipy import signal
 from heapq import heappush, heappop
 import itertools
 import math
-
+import time
 
 class myPlan():
 
@@ -60,7 +60,7 @@ class myPlan():
         ### end tunning para
         
         #np.savetxt('costMap.txt', costMap, '%d')
-        self.IGsum = np.array([])
+        self.IGsum = []
         
                 
         
@@ -406,7 +406,14 @@ class myPlan():
         self.IG_Map = signal.convolve2d(IG_Map_,np.ones((3,3)),mode='same', boundary = 'symm')  
         
         # for summary:
-        self.IGsum = np.append(self.IGsum, sum(self.IG_Map)) 
+        LL = len(self.IGsum)
+        if LL == 0:
+            self.IGsum.append(np.sum(self.IG_Map))
+        else:
+            last = self.IGsum[-1]
+            print(last)            
+            self.IGsum.append(np.sum(self.IG_Map)+last)
+        
         
         
         
@@ -526,8 +533,8 @@ class myPlan():
         #np.savetxt('score.txt', scoreMapUGV, '%.4f')
                 
     def summarize(self):
-        np.savetxt('../results/IGsum.txt',self.IGsum,'%.4f')
-        np.savetxt('../results/IGmap.txt',self.IG_Map,'%.4f')
+        np.savetxt('../results/IGsum.txt',np.array(self.IGsum),'%.4f')
+        #np.savetxt('../results/IGmap.txt',self.IG_Map,'%.4f')
             
             
             
