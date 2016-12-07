@@ -15,11 +15,15 @@ from PyQt4.QtOpenGL import *
 from PIL.Image import open
 import numpy as np
 from time import sleep
+import os
+import platform
 from plan import *
 
+
+
 # path to map files
-GROUND_MAP = '../data/map_manhattan.txt'
-AERIAL_MAP = '../data/map_manhattan.txt'
+GROUND_MAP = '../data/map_random.txt'
+AERIAL_MAP = '../data/map_random.txt'
 
 COLORS = [[255,255,0],[255,195,0],[255,87,51],[199,0,57],[144,12,63],[88,24,69]]
 
@@ -57,8 +61,16 @@ class glWidget(QGLWidget):
    
     
     def __init__(self, parent):
-        QGLWidget.__init__(self, parent)
-        self.setMinimumSize(640, 480)
+        
+        # this is a quick fix
+        if platform.system() == 'Windows':
+            QGLWidget.__init__(self)#, parent)
+        else:
+            QGLWidget.__init__(self, parent)
+            
+        self.setMinimumSize(800, 600)
+        #self.setMinimumSize(320, 240)
+        
         self.ugvX = 2
         self.ugvY = 11
         self.ugvZ = 0
@@ -78,7 +90,7 @@ class glWidget(QGLWidget):
 
         self.cameraX = -width/2
         self.cameraY = -height/2
-        self.cameraZ = 50
+        self.cameraZ = 10
 
         self.rotX = 0
         self.rotY = 0
@@ -90,8 +102,6 @@ class glWidget(QGLWidget):
         self.setFocusPolicy(QtCore.Qt.StrongFocus)
         
       
-        
-        cost = np.zeros([100,100])
         self.a = myPlan(np.array(self.groundMap.data).transpose(), np.array(self.groundMap.data).transpose()*499+1)
 #        self.a.generateDistMap(12,1)
 #        ugvPath = self.a.runAstar(0,0,12,1)
@@ -166,7 +176,7 @@ class glWidget(QGLWidget):
         glBlendFunc (GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
         glMatrixMode(GL_PROJECTION)
         glLoadIdentity()                    
-        gluPerspective(45.0,1.33,0.1, 800.0) 
+        gluPerspective(35,1.33,0.1, 800.0) 
         
      
                    

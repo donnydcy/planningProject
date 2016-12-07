@@ -17,7 +17,7 @@ import math
 
 class myPlan():
 
-    def __init__(self, worldMap=[], costMap=[], poseX=0, poseY=0, dim = 100):
+    def __init__(self, worldMap=[], costMap=[], poseX=22, poseY=22, dim = 100):
         self.occupMap = worldMap
         self.costMap = costMap
         self.visitMap = np.ones([dim,dim])
@@ -33,21 +33,31 @@ class myPlan():
         self.AstarPQUGV = priorityQ()
         self.AstarPQUAV = priorityQ()
         
-        self.AstarWeight = 1.05
         
-        self.penalty = 0.8
         
-        self.m_block = 2
 
         self.UGVPath = np.array([])
         self.UAVPath = np.array([])
         
+        
+        self.deploy_ = 0
+        self.return_ = False
+        
+        
+        ### tunning parameter
+        self.paradist = 0.3
+        self.paraig = 1 - self.paradist
+        self.penalty = 0.01 #0.3  0.8
+        self.m_block = 2
+        self.AstarWeight = 1.05
+
         self.globalTimeThreshold = 200
         self.batteryLife = 100
         self.batteryCapacity = 100
         
-        self.deploy_ = 0
-        self.return_ = False
+    
+        
+        ### end tunning para
         
         np.savetxt('costMap.txt', costMap, '%d')
         
@@ -198,14 +208,48 @@ class myPlan():
 # --------------------------------------------------------------
         
     # def generateUGVScoreMap(self, IG_map = [], m_block = 0.,Dmax = 0, deploy_ = False ):
-    def generateUGVScoreMap(self, Dmax = 0):
+    def generateUGVScoreMap(self, Dmax = 0, flag = 1):
         #TODO use euclidean? or other matric?
     
         # IG_map = np.array(IG_map)
         # score = np.divide(IG_map, self.distMap4UGV) 
-        score = np.divide(self.IG_Map, self.distMap4UGV+2)
-        score = score*(1-self.occupMap)
-        score[self.UGVY, self.UGVX] = 0
+        score = np.divide(pow(self.IG_Map,self.paraig), pow(self.distMap4UGV+2,self.paradist))
+        score = score*(1-flag*self.occupMap)
+        
+        # hack begin
+        
+        new_pose = self.checkBoarder([self.UGVY,self.UGVX])
+        if new_pose:
+            score[new_pose] = 0
+        new_pose = self.checkBoarder([self.UGVY+1, self.UGVX])
+        if new_pose:
+            score[new_pose] = 0
+        new_pose = self.checkBoarder([self.UGVY, self.UGVX+1])
+        if new_pose:
+            score[new_pose] = 0
+        new_pose = self.checkBoarder([self.UGVY-1, self.UGVX])
+        if new_pose:
+            score[new_pose] = 0
+        new_pose = self.checkBoarder([self.UGVY, self.UGVX-1])
+        if new_pose:
+            score[new_pose] = 0
+        new_pose = self.checkBoarder([self.UGVY+1, self.UGVX+1])
+        if new_pose:
+            score[new_pose] = 0
+        new_pose = self.checkBoarder([self.UGVY+1, self.UGVX-1])
+        if new_pose:
+            score[new_pose] = 0
+        new_pose = self.checkBoarder([self.UGVY-1, self.UGVX+1])
+        if new_pose:
+            score[new_pose] = 0
+        new_pose = self.checkBoarder([self.UGVY-1, self.UGVX-1])
+        if new_pose:
+            score[new_pose] = 0
+        
+        # hack end
+        
+        
+        
         # if deploy_ :
             # m_block = 1/m_block
         
@@ -215,8 +259,8 @@ class myPlan():
         if self.deploy_:
             for i in range(self.dim):
                 for j in range(self.dim):
-                    if self.occupMap[j,i]:
-                        continue
+                    #if self.occupMap[j,i]:  # by Wenhao
+                    #    continue            # by Wenhao
                     if self.distMap4UAV[j,i] <= Dmax:
                         score[j,i] *= 1
                     else:
@@ -237,7 +281,42 @@ class myPlan():
 
     def generateUAVScoreMap(self,Dmax = 0):
 
-        score = np.divide(self.IG_Map, self.distMap4UAV+2)
+        score = np.divide(pow(self.IG_Map,self.paraig), pow(self.distMap4UAV+2,self.paradist))
+        
+        # hack begin
+        new_pose = self.checkBoarder([self.UAVY,self.UAVX])
+        if new_pose:
+            score[new_pose] = 0
+        new_pose = self.checkBoarder([self.UAVY+1, self.UAVX])
+        if new_pose:
+            score[new_pose] = 0
+        new_pose = self.checkBoarder([self.UAVY, self.UAVX+1])
+        if new_pose:
+            score[new_pose] = 0
+        new_pose = self.checkBoarder([self.UAVY-1, self.UAVX])
+        if new_pose:
+            score[new_pose] = 0
+        new_pose = self.checkBoarder([self.UAVY, self.UAVX-1])
+        if new_pose:
+            score[new_pose] = 0
+        new_pose = self.checkBoarder([self.UAVY+1, self.UAVX+1])
+        if new_pose:
+            score[new_pose] = 0
+        new_pose = self.checkBoarder([self.UAVY+1, self.UAVX-1])
+        if new_pose:
+            score[new_pose] = 0
+        new_pose = self.checkBoarder([self.UAVY-1, self.UAVX+1])
+        if new_pose:
+            score[new_pose] = 0
+        new_pose = self.checkBoarder([self.UAVY-1, self.UAVX-1])
+        if new_pose:
+            score[new_pose] = 0
+        # hack end
+        
+        
+        
+        
+        
         
         for i in range(self.dim):
             for j in range(self.dim):
@@ -253,6 +332,7 @@ class myPlan():
     def UAVGoBackPlan(self, UGVPath, UAVLoc, batteryLevel):
         print("pre goback UAV location:",UAVLoc)
         print("UGVPath: ", UGVPath)
+        print("batteryLevel back:", batteryLevel)
 
         for i in range(batteryLevel):
             if i < UGVPath.shape[0]:
@@ -369,15 +449,26 @@ class myPlan():
     
         self.updateIGMap()
         
-        scoreMapUGV = self.generateUGVScoreMap(self.batteryLife * 0.9 )
-        UGVFrontier = np.unravel_index(scoreMapUGV.argmax(), scoreMapUGV.shape)
+        if not self.deploy_:
+            scoreMapUGV = self.generateUGVScoreMap(self.batteryLife * 0.9 , flag = 0)
+            UGVFrontier = np.unravel_index(scoreMapUGV.argmax(), scoreMapUGV.shape)
+            if self.occupMap[UGVFrontier[0],UGVFrontier[1]]:
+                self.deploy_ = True
+                print('deploying')
+                print(self.batteryLife)
+                scoreMapUGV = scoreMapUGV*(1-self.occupMap)
+                UGVFrontier = np.unravel_index(scoreMapUGV.argmax(), scoreMapUGV.shape)
+        else:
+            scoreMapUGV = self.generateUGVScoreMap(self.batteryLife * 0.9 )
+            UGVFrontier = np.unravel_index(scoreMapUGV.argmax(), scoreMapUGV.shape)
+        
         # print(UGVFrontier)
         # print(self.UGVX,self.UGVY)
         UGVPath = self.runAstar(UGVFrontier[1], UGVFrontier[0], self.UGVX,self.UGVY, isUAV = False)
         # print(UGVPath)
 
         if self.deploy_:
-            scoreMapUAV = self.generateUAVScoreMap(self.batteryLife * 0.9 )
+            scoreMapUAV = self.generateUAVScoreMap(self.batteryLife * 0.8 )
             UAVFrontier = np.unravel_index(scoreMapUAV.argmax(), scoreMapUAV.shape)
             if sp.spatial.distance.chebyshev(np.array(UAVFrontier), np.array(UGVFrontier)) < self.batteryLife * 0.5:
                 UAVPath =  self.runAstar(UAVFrontier[1],UAVFrontier[0], self.UAVX, self.UAVY, isUAV = True)
@@ -414,12 +505,14 @@ class myPlan():
             
         if self.nearBlock(self.UGVX,self.UGVY) and not self.return_ and not self.deploy_:
             self.deploy_ = True
-            print('deploying')
+            print('deploying near')
+            print(self.batteryLife)
             
         if self.return_ == True:
             self.batteryLife = self.batteryCapacity
             self.return_ = False
-            self.deploy_ = False
+            self.deploy_ = False            
+            
             
         if self.batteryLife <= 0:
             print('wrong batteryLife')                
