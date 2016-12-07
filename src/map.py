@@ -9,6 +9,8 @@ MAP_FILE = '../data/map_manhattan.txt'
 # MAP_BLOCK = [[20,20,80,80]]
 MAP_BLOCK = [[10*i+2,10*j+2,10*i+8,10*j+8] for i in range(10) for j in range(10)]
 
+
+
 mapdata = np.zeros(MAP_SIZE)
 
 for block in MAP_BLOCK:

@@ -64,15 +64,15 @@ class glWidget(QGLWidget):
         
         self.fps = 15 #5 # animation update rate
         
-        self.totalFrames = 10
+        self.totalFrames = 200
         self.FrameCounter = 0
         # this is a quick fix
         if platform.system() == 'Windows':
             QGLWidget.__init__(self)#, parent)
-            self.fov = 15 # field of view
+            self.fov =45 #15 # field of view
         else:
             QGLWidget.__init__(self, parent)
-            self.fov = 45 # field of view
+            self.fov = 45 # 45 # field of view
             
         self.setMinimumSize(800, 600)
         #self.setMinimumSize(320, 240)
@@ -348,6 +348,9 @@ class glWidget(QGLWidget):
             self.a.execute()
         
         print("Remaining Battery Life:",self.a.batteryLife)  # Wenhao
+                      
+        #print("Accumutive Information Gain: %.4f",self.a.IGacc)  #Wenhao
+        
 
         self.ugvX = self.a.UGVX
         self.ugvY = self.a.UGVY

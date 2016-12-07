@@ -55,6 +55,12 @@ class myPlan():
         self.batteryLife = 100
         self.batteryCapacity = 100
         
+        self.IGacc = 0
+        self.iglist = np.array([])
+        
+        self.visit = 0
+        self.visitlist = np.array([])
+        
     
         
         ### end tunning para
@@ -411,13 +417,9 @@ class myPlan():
             self.IGsum.append(np.sum(self.IG_Map))
         else:
             last = self.IGsum[-1]
-            print(last)            
+            #print(last)            # comment by Wenhao
             self.IGsum.append(np.sum(self.IG_Map)+last)
-        
-        
-        
-        
-
+            
 
     def recordPath(self,UGVPath_,UAVPath_):
         #print(self.UGVPath.shape, UGVPath_.shape)
@@ -434,6 +436,27 @@ class myPlan():
         #np.savetxt('UGV.txt', self.UGVPath,'%d')
         #np.savetxt('UAV.txt', self.UAVPath,'%d')
         
+    def getaccIG(self,UGVPath,UAVPath):
+        #print(self.UGVPath.shape, UGVPath_.shape)
+        
+        if self.deploy_:
+            self.IGacc += np.sum(self.IG_Map[UAVPath[:,0],UAVPath[:,1]])
+            self.IGacc += np.sum(self.IG_Map[UGVPath[:,0],UGVPath[:,1]])
+        else:
+            self.IGacc += np.sum(self.IG_Map[UGVPath[:,0],UGVPath[:,1]])  
+            
+            
+        #if len(self.iglist) ==0 :
+         #   self.iglist = np.array(self.IGacc)
+        #else:
+        self.iglist = np.append(self.iglist, np.array(self.IGacc))
+        
+        
+    def countVisit(self):
+        ks = np.count_nonzero(self.visitMap-1)
+        self.visit = np.divide(ks,self.dim*self.dim)
+        self.visitlist = np.append(self.visitlist, np.array(self.visit))
+
 
 
     def nearBlock(self,UGVX,UGVY):
@@ -509,7 +532,12 @@ class myPlan():
         #print(minTimeStep, len(UGVPath), len(UAVPath))            
         self.recordPath( UGVPath[0:(minTimeStep),:], UAVPath[0:(minTimeStep),:])
         
-                    
+        self.getaccIG(UGVPath[0:(minTimeStep),:], UAVPath[0:(minTimeStep),:])
+        self.countVisit()
+        
+        np.savetxt('../results/IGlist.txt',self.iglist,'%.4f')
+        np.savetxt('../results/visitlist.txt',self.visitlist,'%.4f')
+    
         
         if self.deploy_:
             self.batteryLife -= minTimeStep
