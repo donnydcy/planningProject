@@ -1,5 +1,12 @@
 # -*- coding: utf-8 -*-
 """
+Created on Sun Dec 11 18:43:29 2016
+
+@author: LWHPC
+"""
+
+# -*- coding: utf-8 -*-
+"""
 Created on Sun Nov 13 14:44:41 2016
 
 Planning Course Project
@@ -17,13 +24,13 @@ import numpy as np
 import time
 import sys
 import platform
-from plan import *
+from oldplan import *
 
 
 
 # path to map files
-GROUND_MAP = '../data/map_one.txt'
-AERIAL_MAP = '../data/map_one.txt'
+GROUND_MAP = '../data/map_random.txt'
+AERIAL_MAP = '../data/map_random.txt'
 
 COLORS = [[255,255,0],[255,195,0],[255,87,51],[199,0,57],[144,12,63],[88,24,69]]
 
@@ -62,7 +69,7 @@ class glWidget(QGLWidget):
     
     def __init__(self, parent):
         
-        self.fps = 15 #5 # animation update rate
+        self.fps = 30 #5 # animation update rate
         
         self.totalFrames = 20000
         self.FrameCounter = 0
