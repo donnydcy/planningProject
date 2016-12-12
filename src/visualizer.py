@@ -2,9 +2,8 @@
 """
 Created on Sun Nov 13 14:44:41 2016
 
-Planning Course Project
-
-@author: chiyud
+@author: Chiyu Dong, Anqi Li, Wenhao Luo
+2016 Dec @ CMU 
 """
 
 from OpenGL.GL import *
