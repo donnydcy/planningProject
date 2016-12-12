@@ -20,6 +20,10 @@ The installation of the PyQt4 can be problematic, try this:
 ```bash
 conda install -c anaconda pyqt=4.11.4
 ```
+# Execute the program:
+```bash
+python visualizer.py
+```
 
 # Repository:
 * src/prj.py:
@@ -33,6 +37,6 @@ mapdata = np.loadtxt('../data/map_random_algo.txt')
 ```
 * Map Files for algortihms:
 
-	map_one_algo.txt
+	map_manhattan.txt
 	
-	map_random_algo.txt
+	map_random.txt

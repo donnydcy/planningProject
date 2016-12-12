@@ -22,8 +22,8 @@ from plan import *
 
 
 # path to map files
-GROUND_MAP = '../data/map_one.txt'
-AERIAL_MAP = '../data/map_one.txt'
+GROUND_MAP = '../data/map_random.txt'
+AERIAL_MAP = '../data/map_random.txt'
 
 COLORS = [[255,255,0],[255,195,0],[255,87,51],[199,0,57],[144,12,63],[88,24,69]]
 
