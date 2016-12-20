@@ -1,6 +1,8 @@
 # planningProject
 15-887 Project
 
+Implemented Dijkstra and A* (with Dijkstra heuristic).
+
 ![GitHub Logo](https://github.com/donnydcy/planningProject/blob/master/example/planning.png)
 
 
